@@ -1,23 +1,24 @@
 {
-    "name": "ladder",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-        "babel-polyfill": "^6.26.0",
-        "electron": "^1.7.9",
-        "element-ui": "^2.0.2",
-        "http-proxy": "^1.16.2",
-        "jquery": "^3.2.1",
-        "lodash": "^4.17.4",
-        "ssh2": "^0.5.5",
-        "vue": "^2.5.2",
-        "vuex": "^3.0.1",
-        "stupid-vue": "https://github.com/aleechou/stupid-vue.git#master"
-    }
+  "name": "ladder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "electron": "^1.7.9",
+    "element-ui": "^2.0.2",
+    "http-proxy": "^1.16.2",
+    "jquery": "^3.2.1",
+    "lodash": "^4.17.4",
+    "socksv5": "^0.0.6",
+    "ssh2": "^0.5.5",
+    "stupid-vue": "https://github.com/aleechou/stupid-vue.git#master",
+    "vue": "^2.5.2",
+    "vuex": "^3.0.1"
+  }
 }
