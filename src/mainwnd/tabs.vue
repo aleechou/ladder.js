@@ -1,10 +1,10 @@
 <template>
-  <el-tabs v-model="activeName" @tab-click="handleClick">
-    <el-tab-pane label="用户管理" name="first">用户管理</el-tab-pane>
-    <el-tab-pane label="配置管理" name="second">配置管理</el-tab-pane>
-    <el-tab-pane label="角色管理" name="third">角色管理</el-tab-pane>
-    <el-tab-pane label="定时任务补偿" name="fourth">定时任务补偿</el-tab-pane>
-  </el-tabs>
+  <Tabs value="name1" :animated=false>
+      <TabPane label="标签一" name="name1">标签一的内容1</TabPane>
+      <TabPane label="标签二" name="name2">标签二的内容</TabPane>
+
+      <TabPane label="标签三" name="name3">标签三的内容</TabPane>
+  </Tabs>
 </template>
 <script>
   export default {
