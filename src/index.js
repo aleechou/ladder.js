@@ -1,9 +1,3 @@
-
-
-
-
-
-
 // var Client = require('ssh2').Client;
 // var conn = new Client();
 // conn.on('ready', function() {
@@ -195,15 +189,47 @@ var tunnel = require("./tunnel").tunnel
 
 // // });
 
-; (async ()=>{
+
+var store = {
+    a: "aaaa",
+    b: "bbbb",
+    c: {
+        aaa: 11,
+        bbb: 22
+    }
+}
+qnode.shadow(store)
+
+console.log(store.a)
+store.a = "xxx"
+console.log(store.a)
+
+
+
+;
+(async() => {
+
+    qnode.window.openConsole()
 
     var mainwnd = await qnode.window.create()
-    console.log(mainwnd)
-    var loaded = await mainwnd.load("file://"+__dirname+"/mainwnd/mainwindow.html")
-    console.log("loaded",loaded)
+    var loaded = await mainwnd.load("file://" + __dirname + "/mainwnd/mainwindow.html")
+    mainwnd.show()
 
-    // var inspector = await qnode.window.create("http://127.0.0.1:17135")
-    // inspector.show()
+    var a = 111
+    var b = "bbb"
+    var c = {
+        a: a,
+        b: b
+    }
+    var ret = await mainwnd.run(() => {
+        c.b = a
+        c.a = b
+        resolve(c)
+    }, { a, b, c })
+
+    console.log(">>>>>", ret)
+
+
 })()
 
-
+setInterval(() => {}, 1000)
