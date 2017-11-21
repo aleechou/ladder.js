@@ -9,16 +9,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
     "babel-polyfill": "^6.26.0",
-    "electron": "^1.7.9",
-    "element-ui": "^2.0.2",
-    "http-proxy": "^1.16.2",
+    "iview": "^2.7.3",
     "jquery": "^3.2.1",
-    "lodash": "^4.17.4",
     "socksv5": "^0.0.6",
     "ssh2": "^0.5.5",
-    "stupid-vue": "https://github.com/aleechou/stupid-vue.git#master",
     "vue": "^2.5.2",
+    "vue-loader": "^13.5.0",
+    "vue-template-compiler": "^2.5.4",
     "vuex": "^3.0.1"
   }
 }

@@ -4,29 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Ladder.js</title>
-    <link rel="stylesheet" href="../../node_modules/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" type="text/css" href="../../node_modules/iview/dist/styles/iview.css">
     <link rel="stylesheet" href="../common.css" />
 
-    <script src="../../node_modules/jquery/dist/jquery.js"></script>
-    <script src="../../node_modules/vue/dist/vue.js"></script>
-    <script src="../../node_modules/vuex/dist/vuex.js"></script>
-    <script src="../../node_modules/element-ui/lib/index.js"></script>
-
-    <script src="mainwindow.js "></script>
+    <script type="text/javascript" src="../../node_modules/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="../../node_modules/vue/dist/vue.js"></script>
+    <script type="text/javascript" src="../../node_modules/iview/dist/iview.js"></script>
+    <script type="text/javascript" src="../../dist/mainwindow.build.js"></script>
 </head>
 
 <body>
     <div id="app">
-
-        <tabs></tabs>
-        <el-tabs>
-            <el-tab-pane label="隧道" name="tunnel" v-model="activeName">aa
-                <!-- <tunnel-setting></tunnel-setting> -->
-            </el-tab-pane>
-            <el-tab-pane label="PAC" name="pac">xx
-                <!-- <div>{{a.b}}</div> -->
-            </el-tab-pane>
-        </el-tabs>
+        <mainwnd.tabs></mainwnd.tabs>
     </div>
 
 
