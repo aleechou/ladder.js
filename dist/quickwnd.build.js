@@ -898,10 +898,11 @@ module.exports = function listToStyles (parentId, list) {
 
     methods: {
         addServer() {
-            $store.config.tunnels = $store.config.tunnels.concat(newEmptyServerConfig());
+            $store.config.tunnels.push(newEmptyServerConfig());
         },
         removeCurrentServer() {
-            $store.config.tunnels = $store.config.tunnels.slice(0, this.currentServerIdx).concat($store.config.tunnels.slice(this.currentServerIdx + 1));
+            $store.config.tunnels.splice(this.currentServerIdx);
+
             // 删除的是最后一个
             if (this.currentServerIdx >= $store.config.tunnels.length) {
                 this.currentServerIdx--;
@@ -909,7 +910,7 @@ module.exports = function listToStyles (parentId, list) {
         },
         serverTitle(serverConfig) {
             if (!serverConfig) return '';
-            if (serverConfig.title.trim()) return serverConfig.title;else if (serverConfig.server.trim()) {
+            if (serverConfig.title) return serverConfig.title;else if (serverConfig.server) {
                 var title = (serverConfig.username || "") + "@" + serverConfig.server;
                 if (serverConfig.port != 22) title += " :" + serverConfig.port;
                 return title;
