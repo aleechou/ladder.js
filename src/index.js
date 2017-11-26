@@ -191,14 +191,15 @@ var tunnel = require("./tunnel").tunnel
 
 
 var store = {
-    a: "aaaa",
-    b: "bbbb",
-    c: {
-        aaa: 11,
-        bbb: 22
-    }
+    config: {
+        servers: {},
+        tunnels: {},
+        debug: true
+    },
+
+    tunnelStatus: {}
 }
-qnode.shadow(store)
+$store = qnode.bridge.object(store)
 
 console.log(store.a)
 store.a = "xxx"
@@ -209,11 +210,17 @@ console.log(store.a)
 ;
 (async() => {
 
-    qnode.window.openConsole()
+    if ($store.config.debug)
+        qnode.window.openConsole()
 
     var mainwnd = await qnode.window.create()
-    var loaded = await mainwnd.load("file://" + __dirname + "/mainwnd/mainwindow.html")
+    await mainwnd.load("file://" + __dirname + "/mainwnd/mainwindow.html")
+    mainwnd.bridgeShadowObject($store, (store) => {
+        window.$store = store
+        initApp()
+    })
     mainwnd.show()
+
 
     var a = 111
     var b = "bbb"

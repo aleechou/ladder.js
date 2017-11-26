@@ -1,10 +1,10 @@
 const fs = require("fs")
 const pt = require("path")
 
-module.exports = function(webpackConfig, componentFolder) {
+module.exports = function(webpackConfig, cwd, componentFolder) {
 
     var vuelst = {}
-    walk(componentFolder, "", vuelst)
+    walk(cwd + "/" + componentFolder, "", vuelst)
 
     function genShadowEntry(originEntry, shadowEntry) {
 
@@ -17,28 +17,27 @@ module.exports = function(webpackConfig, componentFolder) {
             return consoleerror.apply(console, arguments)
         }
         `
-    
+
         shadowContent += `const Vue = require("vue/dist/vue.js")\r\n`
         for (var tag in vuelst) {
             shadowContent += `Vue.component('${tag}',require('${vuelst[tag]}').default);\r\n`
         }
-        shadowContent += `require('${originEntry}')`
-    
-        fs.writeFileSync(shadowEntry, shadowContent)
+        shadowContent += `require('${cwd+'/'+originEntry}')`
+
+        fs.writeFileSync(cwd + "/" + shadowEntry, shadowContent)
     }
 
-    if( typeof webpackConfig.entry=="string" ) {
+    if (typeof webpackConfig.entry == "string") {
         var originEntry = webpackConfig.entry
-        var shadowEntry = originEntry + "-shadow.js"
-        webpackConfig.entry = shadowEntry
+        var shadowEntry = originEntry.replace(/\.js$/i, "") + "-shadow.js"
+        webpackConfig.entry = shadowEntry.replace(/\.js$/i, "")
 
         genShadowEntry(originEntry, shadowEntry)
-    } 
-    else if( typeof webpackConfig.entry=="object" ){
-        for(var name in webpackConfig.entry) {
+    } else if (typeof webpackConfig.entry == "object") {
+        for (var name in webpackConfig.entry) {
             var originEntry = webpackConfig.entry[name]
-            var shadowEntry = originEntry + "-shadow.js"
-            webpackConfig.entry[name] = shadowEntry
+            var shadowEntry = originEntry.replace(/\.js$/i, "") + "-shadow.js"
+            webpackConfig.entry[name] = shadowEntry.replace(/\.js$/i, "")
 
             genShadowEntry(originEntry, shadowEntry)
         }
@@ -56,7 +55,7 @@ function walk(path, ns, vuelst) {
         } else {
             var info = pt.parse(filename)
             if (info.ext.toLowerCase() == ".vue") {
-                vuelst[ns + info.name] = fullpath
+                vuelst[ns + info.name] = fullpath.replace(/\.vue$/i, "")
             }
         }
     }

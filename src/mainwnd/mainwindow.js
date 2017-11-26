@@ -1,8 +1,4 @@
-const Vue = require("vue/dist/vue.js")
-const iView = require("iview/dist/iview.js")
-Vue.use(iView);
-
-$(function() {
+window.initApp = function initApp() {
     new Vue({
         el: '#app',
         data() {
@@ -10,6 +6,5 @@ $(function() {
                 activeName: 'pac'
             };
         },
-        // computed: Vuex.mapState(['visible', 'a'])
     })
-})
+}
