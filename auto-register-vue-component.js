@@ -46,16 +46,21 @@ module.exports = function(webpackConfig, cwd, componentFolder) {
 
 
 function walk(path, ns, vuelst) {
-    if (ns) ns += "."
+    var prefix = ns
+    if (prefix)
+        prefix += "."
     for (filename of fs.readdirSync(path)) {
         var fullpath = path + "/" + filename
         var stat = fs.statSync(fullpath)
         if (stat.isDirectory()) {
-            walk(fullpath, ns + filename, vuelst)
+            walk(fullpath, prefix + filename, vuelst)
         } else {
             var info = pt.parse(filename)
             if (info.ext.toLowerCase() == ".vue") {
-                vuelst[ns + info.name] = fullpath.replace(/\.vue$/i, "")
+                if(info.name.toLowerCase()=="index")
+                    vuelst[ns] = fullpath.replace(/\.vue$/i, "")
+                else
+                    vuelst[prefix + info.name] = fullpath.replace(/\.vue$/i, "")
             }
         }
     }

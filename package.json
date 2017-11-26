@@ -12,13 +12,18 @@
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-polyfill": "^6.26.0",
+    "css-loader": "^0.28.7",
     "iview": "^2.7.3",
     "jquery": "^3.2.1",
     "socksv5": "^0.0.6",
     "ssh2": "^0.5.5",
     "vue": "^2.5.2",
     "vue-loader": "^13.5.0",
+    "vue-style-loader": "^3.0.3",
     "vue-template-compiler": "^2.5.4",
     "vuex": "^3.0.1"
+  },
+  "devDependencies": {
+    "iview-loader": "^1.0.0"
   }
 }
