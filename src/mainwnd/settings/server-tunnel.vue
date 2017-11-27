@@ -139,6 +139,7 @@
 <script>
 export default {
     data() {
+        console.log(JSON.stringify($store))
         return {
             config: $store.config
             , currentServerIdx: 0
@@ -148,6 +149,8 @@ export default {
     computed: {
         currentTunnel() {
             if(!$store.config.tunnels.length) {
+                console.log("auto newEmptyServerConfig()")
+                console.log(JSON.stringify($store))
                 $store.config.tunnels = [newEmptyServerConfig()]
                 this.currentServerIdx = 0
             }
@@ -161,6 +164,7 @@ export default {
     methods: {
         addServer() {
             $store.config.tunnels.push(newEmptyServerConfig())
+            this.currentServerIdx = $store.config.tunnels.length-1
         },
         removeCurrentServer() {
             $store.config.tunnels.splice(this.currentServerIdx)
@@ -192,7 +196,7 @@ export default {
 }
 
 function genServerConfigId() {
-    return hex_md5(Date.now().toString()+Math.random())
+    return qnode.utils.md5(Date.now().toString()+Math.random())
 }
 
 function newEmptyServerConfig() {

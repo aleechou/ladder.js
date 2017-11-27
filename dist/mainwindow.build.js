@@ -877,6 +877,7 @@ module.exports = function listToStyles (parentId, list) {
 
 /* harmony default export */ __webpack_exports__["a"] = ({
     data() {
+        console.log(JSON.stringify($store));
         return {
             config: $store.config,
             currentServerIdx: 0
@@ -886,6 +887,8 @@ module.exports = function listToStyles (parentId, list) {
     computed: {
         currentTunnel() {
             if (!$store.config.tunnels.length) {
+                console.log("auto newEmptyServerConfig()");
+                console.log(JSON.stringify($store));
                 $store.config.tunnels = [newEmptyServerConfig()];
                 this.currentServerIdx = 0;
             }
@@ -899,6 +902,7 @@ module.exports = function listToStyles (parentId, list) {
     methods: {
         addServer() {
             $store.config.tunnels.push(newEmptyServerConfig());
+            this.currentServerIdx = $store.config.tunnels.length - 1;
         },
         removeCurrentServer() {
             $store.config.tunnels.splice(this.currentServerIdx);
@@ -926,7 +930,7 @@ module.exports = function listToStyles (parentId, list) {
 });
 
 function genServerConfigId() {
-    return hex_md5(Date.now().toString() + Math.random());
+    return qnode.utils.md5(Date.now().toString() + Math.random());
 }
 
 function newEmptyServerConfig() {
