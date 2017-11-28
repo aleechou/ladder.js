@@ -1,5 +1,7 @@
 require("./store.js")
 
+$store.change(console.log)
+
 ;
 (async() => {
 
