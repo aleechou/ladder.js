@@ -259,7 +259,7 @@ var ssh_config = {
 
 var poolReadyTunnels = []
 
-var tunnel = new Tunnel(ssh_config)
-exports.tunnel = function() {
-    return tunnel
-}
+// var tunnel = new Tunnel(ssh_config)
+// exports.tunnel = function() {
+//     return tunnel
+// }
