@@ -1,9 +1,15 @@
-global.$store = qnode.bridge.object({
+$store = qnode.bridge.object({
     config: {
-        servers: {},
-        tunnels: {},
+        tunnels: [],
+
         debug: true
     },
 
-    tunnelStatus: {}
+    tunnelStatus: {},
+
+    ui: {
+        mainwnd: {
+            selectedTab: ""
+        }
+    }
 })
