@@ -2,14 +2,19 @@ const openlist = require('./openlist.pac')
 
 
 var whiteList = [
-    //".googleusercontent.com", ".ggpht.com", ".ytimg.com", ".googlevideo.com"
+    // google
+    ".googleusercontent.com", ".ggpht.com", ".ytimg.com", ".googlevideo.com", ".googleapis.com", ".gstatic.com"
+    // facebook
+    , ".fbcdn.net"
+    // pornhub
+    , ".phncdn.com", ".rncdn1.com", ".rncdn2.com", ".rncdn3.com"
 ]
 whiteList.forEach(openlist.add)
 
 
 var matchCache = {}
 
-exports.match = function(hostname) {
+exports.isBlocked = function(hostname) {
     if (matchCache[hostname] === undefined) {
 
         // 

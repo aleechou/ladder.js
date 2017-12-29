@@ -1,97 +1,88 @@
-const net = require('net')
 const router = require('./proxy/router.js')
 const socks = require('socksv5')
 const tunnel = require('./proxy/tunnel')
 
 
-socks.createServer(function(info, accept, deny) {
+var assigned_req_id = 0
 
-        function tryTunnel() {
-            // 自动尝试链接
-            tunnel.connectViaProxy(info, (error, downstream) => {
-                if (error) {
-                    console.log(error)
-                    deny()
-                    return
-                }
+var server = socks.createServer(function(info, accept, deny) {
 
-                console.log("into tunnel for", info.dstAddr)
-                intoTunnel(downstream)
+        var requestTime = Date.now()
+        var activestream = null
+        var pendingStreamCount = 0
+        var reqid = assigned_req_id++;
 
-                router.addCache(info.dstAddr)
-            })
+        function cancel() {
+            if (pendingStreamCount == 0)
+                deny()
         }
 
-        function intoTunnel(downstream) {
-            var upstream = accept(true)
-            if (upstream) {
-                downstream.cat(upstream)
-            } else {
-                console.error("can not accept request via tunnel", info)
+        function onStreamReady(error, downstream) {
+
+            pendingStreamCount--
+
+            if (error) {
+                console.log(error)
+                return cancel()
+            }
+
+            console.log(reqid, info.dstAddr, downstream.proxy || "direct", Date.now() - requestTime)
+
+            // 尚未衔接管道
+            if (!activestream) {
+
+
+                var upstream = accept(true)
+
+                if (upstream) {
+                    // 连接上下游管道
+                    downstream.cat(upstream)
+
+                    activestream = downstream
+
+                    process.stdout.write(downstream.proxy ? 'x' : '.')
+                }
+
+                // 无法获取上游管道(浏览器关闭链接?)
+                else {
+                    console.error("can not accept request via tunnel, client has wait", Date.now() - requestTime, "ms. ", info)
+                    downstream.end()
+                    return cancel()
+                }
+            }
+            // 较慢的链接
+            else {
+                // 弃用
                 downstream.end()
-                deny()
+
+                // 代理比直连更快
+                if (!downstream.proxy) {
+                    console.log("find out faster route for", info.dstAddr, ", via ", activestream.proxy || "direct")
+                }
             }
         }
 
-        // 需要代理
-        if (router.match(info.dstAddr)) {
+        // 代理隧道
+        tunnel.connectViaProxy(info, onStreamReady)
+        pendingStreamCount++
 
-            console.log("forward by proxy", info.dstAddr)
-
-            tunnel.connectViaProxy(info, (error, downstream) => {
-                if (error) {
-                    console.error(error)
-                    deny()
-                    return
-                }
-
-                intoTunnel(downstream)
-            })
-        }
-        // 不需要代理
-        else {
-
-            process.stdout.write('.')
-
-            var nextsock = new net.Socket()
-            nextsock
-                .setTimeout(5000)
-                .on('connect', function() {
-                    var sourcesock = accept(true)
-                    if (!sourcesock) {
-                        console.log("can not accept request direct", info)
-                        deny()
-                        nextsock.close()
-                        return
-                    }
-                    sourcesock
-                        .on("error", (error) => {
-                            console.log("source host error", error)
-                        })
-                        .pipe(nextsock)
-                        .pipe(sourcesock)
-                })
-                .on("timeout", () => {
-                    console.log('socket timeout', info)
-                    tryTunnel() // 尝试使用隧道
-                })
-                .on("error", (error) => {
-                    if (error.code = "ECONNRESET") {
-                        console.log("block?", info.dstAddr)
-                        tryTunnel() // 尝试使用隧道
-                    } else {
-                        deny()
-                    }
-                    console.log("dst host error", error)
-                })
-                .connect(info.dstPort, info.dstAddr)
+        // 直接链接
+        if (!router.isBlocked(info.dstAddr)) {
+            tunnel.connectDirect(info, onStreamReady)
+            pendingStreamCount++
         }
 
-    })
-    .listen(1080, 'localhost', function() {
-        console.log('SOCKSv5 proxy server started on port 1080');
     })
     .on("error", (error) => {
         console.log("dynamic port error", error)
     })
-    .useAuth(socks.auth.None());
+    .useAuth(socks.auth.None())
+    .listen(1080, 'localhost', function() {
+        console.log('SOCKSv5 proxy server started on port 1080');
+    })
+
+
+
+process.on('uncaughtException', function(err) {
+    console.error('Error caught in uncaughtException event:', err);
+});

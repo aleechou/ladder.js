@@ -1,4 +1,5 @@
 var SshClient = require('ssh2').Client
+const net = require('net')
 
 
 let privateKey = `-----BEGIN RSA PRIVATE KEY-----
@@ -48,18 +49,40 @@ exports.connectViaProxy = function(info, callback) {
             info.dstPort,
             function(err, downstream) {
                 if (err) {
-                    callback({ code: "cannot-forward", cause: err })
+                    callback({ code: "dst-inaccessible", cause: err, proxy: false })
                     return
                 }
                 downstream.cat = function(upstream) {
-                    downstream.pipe(upstream).pipe(downstream).on('close', function() {
+                    this.pipe(upstream).pipe(this).on('close', function() {
                         conn.end();
                     });
                 }
+                downstream.proxy = `${ssh_config.username}@${ssh_config.host}:${ssh_config.port}`
 
                 callback(null, downstream)
             });
     }).on('error', function(err) {
         callback({ code: "cannot-build-tunnel", cause: err })
     }).connect(ssh_config)
+}
+
+
+exports.connectDirect = function(info, callback) {
+    var downstream = new net.Socket()
+        // .setTimeout(15000)
+        .on('connect', function() {
+            downstream.cat = function(upstream) {
+                this.pipe(upstream).pipe(this)
+            }
+            downstream.proxy = null
+
+            callback(null, downstream)
+        })
+        .on("error", (error) => {
+            if (error.code = "ECONNRESET") {
+                console.log("block?", info.dstAddr)
+            }
+            callback({ code: "dst-inaccessible", cause: error, proxy: false })
+        })
+        .connect(info.dstPort, info.dstAddr)
 }
