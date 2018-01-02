@@ -7,7 +7,7 @@ var whiteList = [
     // facebook
     , ".fbcdn.net"
     // pornhub
-    , ".phncdn.com", ".rncdn1.com", ".rncdn2.com", ".rncdn3.com"
+    , ".pornhub.com", ".phncdn.com", ".rncdn1.com", ".rncdn2.com", ".rncdn3.com"
 ]
 whiteList.forEach(openlist.add)
 
