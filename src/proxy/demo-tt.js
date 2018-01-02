@@ -39,53 +39,9 @@ var ssh_config = {
 }
 
 
-exports.connectViaProxy = function(info, callback) {
+var conn = new SshClient();
+conn.on('ready', function() {
 
-    var conn = new SshClient();
-    conn.on('ready', function() {
-        conn.forwardOut(
-            //info.srcAddr,
-            //info.srcPort,
-            "0.0.0.0",
-            0,
-            info.dstAddr,
-            info.dstPort,
-            function(err, downstream) {
-                if (err) {
-                    callback({ code: "dst-inaccessible", cause: err, proxy: false })
-                    return
-                }
-                downstream.cat = function(upstream) {
-                    this.pipe(upstream).pipe(this).on('close', function() {
-                        conn.end();
-                    });
-                }
-                downstream.proxy = `${ssh_config.username}@${ssh_config.host}:${ssh_config.port}`
-
-                callback(null, downstream)
-            });
-    }).on('error', function(err) {
-        callback({ code: "cannot-build-tunnel", cause: err })
-    }).connect(ssh_config)
-}
-
-
-exports.connectDirect = function(info, callback) {
-    var downstream = new net.Socket()
-        // .setTimeout(15000)
-        .on('connect', function() {
-            downstream.cat = function(upstream) {
-                this.pipe(upstream).pipe(this)
-            }
-            downstream.proxy = null
-
-            callback(null, downstream)
-        })
-        .on("error", (error) => {
-            if (error.code = "ECONNRESET") {
-                console.log("block?", info.dstAddr)
-            }
-            callback({ code: "dst-inaccessible", cause: error, proxy: false })
-        })
-        .connect(info.dstPort, info.dstAddr)
-}
+}).on('error', function(err) {
+    callback({ code: "cannot-build-tunnel", cause: err })
+}).connect(ssh_config)
