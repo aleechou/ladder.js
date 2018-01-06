@@ -46,7 +46,6 @@ var los = {
 }
 
 
-
 var assigned_req_id = 0
 
 var server = socks.createServer(function(info, accept, deny) {
@@ -57,16 +56,18 @@ var server = socks.createServer(function(info, accept, deny) {
         var pendingStreamCount = 0
         var reqid = assigned_req_id++;
 
-        // 代理隧道
-        tunnel.connectViaProxy(info, tokoy, onStreamReady)
-        pendingStreamCount++
-
-        tunnel.connectViaProxy(info, los, onStreamReady)
-        pendingStreamCount++
-
         // 直接链接
         if (!router.isBlocked(info.dstAddr)) {
             tunnel.connectDirect(info, onStreamReady)
+            pendingStreamCount++
+        }
+
+        // 代理隧道
+        else {
+            tunnel.connectViaProxy(info, tokoy, onStreamReady, reqid)
+            pendingStreamCount++
+
+            tunnel.connectViaProxy(info, los, onStreamReady, reqid)
             pendingStreamCount++
         }
 
@@ -91,7 +92,7 @@ var server = socks.createServer(function(info, accept, deny) {
 
                     // ECONNRESET 会在之前触发一次 onStreamReady
                     // 即被 block 的 downstream 会两次 callback
-                    if(activestream===downstream){
+                    if (activestream === downstream) {
                         activestream = null
                         pendingStreamCount++
                     }
@@ -105,17 +106,17 @@ var server = socks.createServer(function(info, accept, deny) {
             // 尚未衔接管道
             if (!activestream) {
 
-                if(!upstream)
+                if (!upstream)
                     upstream = accept(true)
 
-                if(upstream) {
+                if (upstream) {
 
                     // 连接上下游管道
                     downstream.cat(upstream)
 
                     activestream = downstream
 
-                    console.log("=", reqid, info.dstAddr, downstream.proxy || "direct", time)
+                    console.log(downstream.proxy ? "." : "=", reqid, info.dstAddr, downstream.proxy || "direct", time)
 
                 }
                 // 无法获取上游管道(浏览器关闭链接?)
@@ -129,7 +130,7 @@ var server = socks.createServer(function(info, accept, deny) {
             // 较慢的链接
             else {
                 // 弃用
-                downstream.end()
+                downstream.close()
 
                 // 代理比直连更快
                 if (!downstream.proxy) {

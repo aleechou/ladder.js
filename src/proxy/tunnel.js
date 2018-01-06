@@ -4,36 +4,52 @@ const net = require('net')
 
 
 
-exports.connectViaProxy = function(info, sshConfig, callback) {
+exports.connectViaProxy = function(info, sshConfig, callback, reqid) {
 
     var proxy = `${sshConfig.username}@${sshConfig.host}:${sshConfig.port}`
 
     var conn = new SshClient();
     conn.on('ready', function() {
-        conn.forwardOut(
-            //info.srcAddr,
-            //info.srcPort,
-            "0.0.0.0",
-            0,
-            info.dstAddr,
-            info.dstPort,
-            function(err, downstream) {
-                if (err) {
-                    callback({ code: "dst-inaccessible", cause: err, proxy: proxy })
-                    return
-                }
-                downstream.cat = function(upstream) {
-                    this.pipe(upstream).pipe(this).on('close', function() {
-                        conn.end();
-                    });
-                }
-                downstream.proxy = proxy
+            conn.forwardOut(
+                info.srcAddr,
+                info.srcPort,
+                // "0.0.0.0",
+                // 0,
+                info.dstAddr,
+                info.dstPort,
+                function(err, downstream) {
+                    if (err) {
+                        callback({ code: "dst-inaccessible", cause: err, proxy: proxy })
+                        conn.end()
+                        return
+                    }
+                    downstream.cat = function(upstream) {
+                        upstream.on('close', () => console.log(reqid, 'upstream closed', proxy))
+                        this.pipe(upstream).pipe(this)
+                    }
+                    downstream.oriEnd = downstream.end
+                    downstream.end = function() {
+                        this.oriEnd()
+                        conn.end()
+                    }
+                    downstream.proxy = proxy
 
-                callback(null, downstream)
-            });
-    }).on('error', function(err) {
-        callback({ code: "cannot-build-tunnel", cause: err, proxy: proxy})
-    }).connect(sshConfig)
+                    downstream.on('close', function() {
+                        console.log(reqid, "forwarder closed", proxy)
+                        conn.end()
+                    });
+
+                    callback(null, downstream)
+                });
+        })
+        .on('error', function(err) {
+            callback({ code: "cannot-build-tunnel", cause: err, proxy: proxy })
+            conn.end()
+        })
+        .on('close', () => {
+            console.log(reqid, "tunnel closed", proxy)
+        })
+        .connect(sshConfig)
 }
 
 
