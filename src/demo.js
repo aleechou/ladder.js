@@ -59,7 +59,6 @@ DAHUPThKNsXqGk+sizACa5KG0yZHKZ1L02sQKixPByUjw0xUyk/WZA==
                 console.error("E", error)
             })
             .on('close', ()=>{
-                console.error("upstream close")
                 worker.kill()
             })
         }
@@ -185,12 +184,9 @@ else {
 
     process.on('message',(info)=>{
 
-        console.log(info)
-
         var downstream = new net.Socket()
         // .setTimeout(15000)
         .on('connect', function() {
-            console.log('worker connect')
             process.send('forwarder-connected', downstream)
         })
         .on("error", (error) => {
@@ -204,7 +200,6 @@ else {
             process.exit()
         })
         .on('close', ()=> {
-            console.log("downstream close")
             process.exit()
         })
         .connect(info.dstPort, info.dstAddr)
