@@ -1,4 +1,4 @@
-var SshClient = require('ssh2').Client
+const SshClient = require('ssh2').Client
 const net = require('net')
 
 
