@@ -82,7 +82,7 @@ DAHUPThKNsXqGk+sizACa5KG0yZHKZ1L02sQKixPByUjw0xUyk/WZA==
                 worker.accept = accept
                 worker.send(info)
                 worker.on('exit',()=>{
-                    console.log('work exited')
+                    console.log('work exited. remain:', Object.keys(cluster.workers).length)
                 })
                 return
             }
