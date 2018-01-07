@@ -55,7 +55,7 @@ DAHUPThKNsXqGk+sizACa5KG0yZHKZ1L02sQKixPByUjw0xUyk/WZA==
             downstream.pipe(upstream).pipe(downstream)
 
             upstream
-            .on('error', ()=>{
+            .on('error', (error)=>{
                 console.error("E", error)
             })
             .on('close', ()=>{
