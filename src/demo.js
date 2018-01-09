@@ -1,10 +1,54 @@
 const cluster = require('cluster')
-if(cluster.isMaster){
+if (cluster.isMaster) {
+
+    const socks = require('socksv5')
+    const socksServer = require('./proxy/socks5-server')
+
+    var assigned_req_id = 0
+
+    var server = socksServer.createServer(function(info, upstream) {
+
+            info.reqid = assigned_req_id++;
+
+            let worker = cluster.fork()
+            worker.on('exit', () => {
+                upstream.end()
+                console.log(info.reqid, 'work exited. remain:', Object.keys(cluster.workers).length)
+            })
+
+            upstream
+                .on('error', (error) => {
+                    console.error("E", error)
+                })
+                .on('close', () => {
+                    console.log("upstream closed", info)
+                    worker.kill()
+                })
+
+            worker.send(info, upstream)
+        })
+        .on("error", (error) => {
+            console.log("dynamic port error", error)
+        })
+        .useAuth(socks.auth.None())
+        .listen(1080, 'localhost', function() {
+            console.log('SOCKSv5 proxy server started on port 1080');
+        })
+
+} else {
 
     const router = require('./proxy/router.js')
-    const socks = require('socksv5')
     const tunnel = require('./proxy/tunnel')
 
+    var REP = require('socksv5/lib/constants').REP;
+    var BUF_REP_INTR_SUCCESS = new Buffer([0x05,
+            REP.SUCCESS,
+            0x00,
+            0x01,
+            0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00
+        ]),
+        BUF_REP_DISALLOW = new Buffer([0x05, REP.DISALLOW])
 
     let privateKey = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAr/3y/etPVpkEc77MkgBa6M3MvsIZi4Zk04P/BnSq++U5p4v7
@@ -48,161 +92,117 @@ DAHUPThKNsXqGk+sizACa5KG0yZHKZ1L02sQKixPByUjw0xUyk/WZA==
         privateKey: privateKey
     }
 
-    cluster.on('message', (worker, message, downstream) => {
-        if(message=='forwarder-connected') {
-            let upstream = worker.accept(true)
-            worker.accept = undefined
-            downstream.pipe(upstream).pipe(downstream)
 
-            upstream
-            .on('error', (error)=>{
-                console.error("E", error)
-            })
-            .on('close', ()=>{
-                worker.kill()
-            })
+    process.on('message', (info, upstream) => {
+
+        upstream.on('close', () => {
+            console.log('upstream close', info)
+            process.exit()
+        })
+
+        var requestTime = Date.now()
+        var activestream = null
+        var pendingStreamCount = 0
+
+        // 直接链接
+        if (!router.isBlocked(info.dstAddr)) {
+            tunnel.connectDirect(info, onStreamReady, upstream)
+            pendingStreamCount++
         }
-    })
 
-    var assigned_req_id = 0
+        // 代理隧道
+        else {
+            tunnel.connectViaProxy(info, tokoy, onStreamReady, info.reqid)
+            pendingStreamCount++
 
-    var server = socks.createServer(function(info, accept, deny) {
+            tunnel.connectViaProxy(info, los, onStreamReady, info.reqid)
+            pendingStreamCount++
+        }
 
-            var requestTime = Date.now()
-            var activestream = null
-            var upstream = null
-            var pendingStreamCount = 0
-            var reqid = assigned_req_id++;
+        var handled = false;
 
-            // 直接链接
-            if (!router.isBlocked(info.dstAddr)) {
-                // tunnel.connectDirect(info, onStreamReady)
-                // pendingStreamCount++
-                let worker = cluster.fork()
-                worker.accept = accept
-                worker.send(info)
-                worker.on('exit',()=>{
-                    console.log('work exited. remain:', Object.keys(cluster.workers).length)
-                })
+        function cancel() {
+            if (pendingStreamCount == 0) {
+                deny()
+            }
+        }
+
+        function accept() {
+            if (handled)
                 return
+            handled = true;
+            if (upstream.writable) {
+                upstream.write(BUF_REP_INTR_SUCCESS);
+                process.nextTick(function() {
+                    upstream.resume()
+                })
+            }
+        }
+
+        function deny() {
+            if (handled)
+                return;
+            handled = true;
+            if (upstream.writable)
+                upstream.end(BUF_REP_DISALLOW);
+        }
+
+        function onStreamReady(error, downstream) {
+
+            pendingStreamCount--
+
+            var time = Date.now() - requestTime
+
+            if (error) {
+                console.log("E", info.reqid, error.proxy || "direct", error, time)
+
+                if (error.cause.code = "ECONNRESET") {
+                    console.log("block?", info.dstAddr)
+
+                    // ECONNRESET 会在之前触发一次 onStreamReady
+                    // 即被 block 的 downstream 会两次 callback
+                    if (activestream === downstream) {
+                        activestream = null
+                        pendingStreamCount++
+                    }
+
+                    router.addCache(info.dstAddr)
+                }
+
+                return cancel()
             }
 
-            // 代理隧道
+            // 尚未衔接管道
+            if (!activestream) {
+
+                accept()
+
+                downstream.on("close", () => {
+                    console.log("downstream closed", info)
+                    process.exit()
+                })
+
+                // 连接上下游管道
+                downstream.cat(upstream)
+
+                activestream = downstream
+
+                console.log(downstream.proxy ? "." : "=", info.reqid, info.dstAddr, downstream.proxy || "direct", time)
+
+            }
+            // 较慢的链接
             else {
-                tunnel.connectViaProxy(info, tokoy, onStreamReady, reqid)
-                pendingStreamCount++
+                // 弃用
+                downstream.close()
 
-                tunnel.connectViaProxy(info, los, onStreamReady, reqid)
-                pendingStreamCount++
-            }
-
-            function cancel() {
-                if (pendingStreamCount == 0) {
-                    deny()
-                    console.log("deny", reqid)
-                }
-            }
-
-            function onStreamReady(error, downstream) {
-
-                pendingStreamCount--
-
-                var time = Date.now() - requestTime
-
-                if (error) {
-                    console.log("E", reqid, error.proxy || "direct", error, time)
-
-                    if (error.cause.code = "ECONNRESET") {
-                        console.log("block?", info.dstAddr)
-
-                        // ECONNRESET 会在之前触发一次 onStreamReady
-                        // 即被 block 的 downstream 会两次 callback
-                        if (activestream === downstream) {
-                            activestream = null
-                            pendingStreamCount++
-                        }
-
-                        router.addCache(info.dstAddr)
-                    }
-
-                    return cancel()
+                // 代理比直连更快
+                if (!downstream.proxy) {
+                    console.log("find out faster route for", info.dstAddr, ", via ", activestream.proxy || "direct")
                 }
 
-                // 尚未衔接管道
-                if (!activestream) {
-
-                    if (!upstream)
-                        upstream = accept(true)
-
-                    if (upstream) {
-
-                        // 连接上下游管道
-                        downstream.cat(upstream)
-
-                        activestream = downstream
-
-                        console.log(downstream.proxy ? "." : "=", reqid, info.dstAddr, downstream.proxy || "direct", time)
-
-                    }
-                    // 无法获取上游管道(浏览器关闭链接?)
-                    else {
-                        console.error("can not accept request via tunnel, client has wait", time, "ms. ", info)
-                        downstream.end()
-                        return deny()
-                    }
-
-                }
-                // 较慢的链接
-                else {
-                    // 弃用
-                    downstream.close()
-
-                    // 代理比直连更快
-                    if (!downstream.proxy) {
-                        console.log("find out faster route for", info.dstAddr, ", via ", activestream.proxy || "direct")
-                    }
-
-                    console.log("x", reqid, info.dstAddr, downstream.proxy || "direct", Date.now() - requestTime)
-                }
+                console.log("x", info.reqid, info.dstAddr, downstream.proxy || "direct", Date.now() - requestTime)
             }
-
-        })
-        .on("error", (error) => {
-            console.log("dynamic port error", error)
-        })
-        .useAuth(socks.auth.None())
-        .listen(1080, 'localhost', function() {
-            console.log('SOCKSv5 proxy server started on port 1080');
-        })
-
-    }
-
-
-else {
-
-    const net = require('net')
-
-    process.on('message',(info)=>{
-
-        var downstream = new net.Socket()
-        // .setTimeout(15000)
-        .on('connect', function() {
-            process.send('forwarder-connected', downstream)
-        })
-        .on("error", (error) => {
-
-            if (error.code = "ECONNRESET") {
-                console.log("block?", info.dstAddr)
-            }
-
-            console.error('E', info.dstAddr, error)
-            
-            process.exit()
-        })
-        .on('close', ()=> {
-            process.exit()
-        })
-        .connect(info.dstPort, info.dstAddr)
+        }
 
     })
 }
