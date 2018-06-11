@@ -2,3 +2,4 @@ node_modules
 package-lock.json
 .vscode/
 **/*-shadow.js
+.DS_Store

@@ -3,12 +3,15 @@ if (cluster.isMaster) {
 
     const socks = require('socksv5')
     const socksServer = require('./proxy/socks5-server')
+    const router = require('./proxy/router.js')
 
     var assigned_req_id = 0
 
     var server = socksServer.createServer(function(info, upstream) {
 
             info.reqid = assigned_req_id++;
+
+            info.directly = !router.isBlocked(info.dstAddr)
 
             let worker = cluster.fork()
             worker.on('exit', () => {
@@ -25,6 +28,12 @@ if (cluster.isMaster) {
                     worker.kill()
                 })
 
+            worker.on('message',(params)=>{
+                if( params.message=='add router' ) {
+                    router.addCache(params.addr)
+                }
+            })
+
             worker.send(info, upstream)
         })
         .on("error", (error) => {
@@ -37,7 +46,6 @@ if (cluster.isMaster) {
 
 } else {
 
-    const router = require('./proxy/router.js')
     const tunnel = require('./proxy/tunnel')
 
     var REP = require('socksv5/lib/constants').REP;
@@ -93,118 +101,138 @@ DAHUPThKNsXqGk+sizACa5KG0yZHKZ1L02sQKixPByUjw0xUyk/WZA==
     }
 
 
+
     process.on('message', (info, upstream) => {
+
+        var requestTime = Date.now()
+        var activestream = null
+        var pendingStreamCount = 0
+        var retriedViaProxy = false
 
         upstream.on('close', () => {
             console.log('upstream close', info)
             process.exit()
         })
+        
+        forward(info)
 
-        var requestTime = Date.now()
-        var activestream = null
-        var pendingStreamCount = 0
+        function forward(info) {
 
-        // 直接链接
-        if (!router.isBlocked(info.dstAddr)) {
-            tunnel.connectDirect(info, onStreamReady, upstream)
-            pendingStreamCount++
-        }
-
-        // 代理隧道
-        else {
-            tunnel.connectViaProxy(info, tokoy, onStreamReady, info.reqid)
-            pendingStreamCount++
-
-            tunnel.connectViaProxy(info, los, onStreamReady, info.reqid)
-            pendingStreamCount++
-        }
-
-        var handled = false;
-
-        function cancel() {
-            if (pendingStreamCount == 0) {
-                deny()
+            // 直接链接
+            if (info.directly) {
+                tunnel.connectDirect(info, onStreamReady, upstream)
+                pendingStreamCount++
             }
-        }
 
-        function accept() {
-            if (handled)
-                return
-            handled = true;
-            if (upstream.writable) {
-                upstream.write(BUF_REP_INTR_SUCCESS);
-                process.nextTick(function() {
-                    upstream.resume()
-                })
+            // 代理隧道
+            else {
+                // tunnel.connectViaProxy(info, tokoy, onStreamReady, info.reqid)
+                // pendingStreamCount++
+
+                tunnel.connectViaProxy(info, los, onStreamReady, info.reqid)
+                pendingStreamCount++
             }
-        }
 
-        function deny() {
-            if (handled)
-                return;
-            handled = true;
-            if (upstream.writable)
-                upstream.end(BUF_REP_DISALLOW);
-        }
+            var handled = false;
 
-        function onStreamReady(error, downstream) {
+            function cancel() {
+                if (pendingStreamCount == 0) {
+                    deny()
+                }
+            }
 
-            pendingStreamCount--
+            function accept() {
+                if (handled)
+                    return
+                handled = true;
+                if (upstream.writable) {
+                    upstream.write(BUF_REP_INTR_SUCCESS);
+                    process.nextTick(function() {
+                        upstream.resume()
+                    })
+                }
+            }
 
-            var time = Date.now() - requestTime
+            function deny() {
+                if (handled)
+                    return;
+                handled = true;
+                if (upstream.writable)
+                    upstream.end(BUF_REP_DISALLOW);
+            }
 
-            if (error) {
-                console.log("E", info.reqid, error.proxy || "direct", error, time)
+            function onStreamReady(error, downstream) {
 
-                if (error.cause.code = "ECONNRESET") {
-                    console.log("block?", info.dstAddr)
+                pendingStreamCount--
 
-                    // ECONNRESET 会在之前触发一次 onStreamReady
-                    // 即被 block 的 downstream 会两次 callback
-                    if (activestream === downstream) {
-                        activestream = null
-                        pendingStreamCount++
+                var time = Date.now() - requestTime
+
+                if (error) {
+                    console.log("E", info.reqid, error.proxy||"direct",
+                            error.dstAddr+":"+error.dstPort, time+"ms")
+
+                    if (error.cause && error.cause.code=="ECONNRESET") {
+                        console.log("block?", info.dstAddr)
+
+                        // ECONNRESET 会在之前触发一次 onStreamReady
+                        // 即被 block 的 downstream 会两次 callback
+                        if (activestream === downstream) {
+                            activestream = null
+                            pendingStreamCount++
+                        }
+                        
+                        process.send({
+                            message: 'add router',
+                            addr: info.dstAddr
+                        })
+
+                        // 尝试走代理重试
+                        if( !retriedViaProxy ) {
+                            info.directly = false
+                            onStreamReady(info)
+                            retriedViaProxy = true
+                            return
+                        }
                     }
 
-                    router.addCache(info.dstAddr)
+                    return cancel()
                 }
 
-                return cancel()
-            }
+                // 尚未衔接管道
+                if (!activestream) {
 
-            // 尚未衔接管道
-            if (!activestream) {
+                    accept()
 
-                accept()
+                    downstream.on("close", () => {
+                        console.log("downstream closed", info.reqid, info.dstAddr+":"+info.dstPort)
+                        process.exit()
+                    })
 
-                downstream.on("close", () => {
-                    console.log("downstream closed", info)
-                    process.exit()
-                })
+                    // 连接上下游管道
+                    downstream.cat(upstream)
 
-                // 连接上下游管道
-                downstream.cat(upstream)
+                    activestream = downstream
 
-                activestream = downstream
+                    console.log(downstream.proxy ? "." : "=", info.reqid, info.dstAddr, downstream.proxy || "direct", time)
 
-                console.log(downstream.proxy ? "." : "=", info.reqid, info.dstAddr, downstream.proxy || "direct", time)
-
-            }
-            // 较慢的链接
-            else {
-                // 弃用
-                downstream.close()
-
-                // 代理比直连更快
-                if (!downstream.proxy) {
-                    console.log("find out faster route for", info.dstAddr, ", via ", activestream.proxy || "direct")
                 }
+                // 较慢的链接
+                else {
+                    // 弃用
+                    downstream.close()
 
-                console.log("x", info.reqid, info.dstAddr, downstream.proxy || "direct", Date.now() - requestTime)
+                    // 代理比直连更快
+                    if (!downstream.proxy) {
+                        console.log("find out faster route for", info.dstAddr, ", via ", activestream.proxy || "direct")
+                    }
+
+                    console.log("x", info.reqid, info.dstAddr, downstream.proxy || "direct", Date.now() - requestTime)
+                }
             }
+
         }
-
     })
+
 }
 
 process.on('uncaughtException', function(err) {
