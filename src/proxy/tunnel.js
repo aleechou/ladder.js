@@ -10,7 +10,6 @@ exports.connectViaProxy = function(info, sshConfig, callback, reqid) {
 
     var conn = new SshClient();
     conn.on('ready', function() {
-        console.log(">>>.",info.dstAddr)
         conn.forwardOut(
             info.srcAddr,
             info.srcPort,

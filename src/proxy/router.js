@@ -15,7 +15,6 @@ whiteList.forEach(openlist.add)
 var matchCache = {}
 
 exports.isBlocked = function(hostname) {
-    return false
     if (matchCache[hostname] === undefined) {
         matchCache[hostname] = openlist.match(hostname)
     }

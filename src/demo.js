@@ -126,8 +126,8 @@ DAHUPThKNsXqGk+sizACa5KG0yZHKZ1L02sQKixPByUjw0xUyk/WZA==
 
             // 代理隧道
             else {
-                // tunnel.connectViaProxy(info, tokoy, onStreamReady, info.reqid)
-                // pendingStreamCount++
+                tunnel.connectViaProxy(info, tokoy, onStreamReady, info.reqid)
+                pendingStreamCount++
 
                 tunnel.connectViaProxy(info, los, onStreamReady, info.reqid)
                 pendingStreamCount++
@@ -189,7 +189,7 @@ DAHUPThKNsXqGk+sizACa5KG0yZHKZ1L02sQKixPByUjw0xUyk/WZA==
                         // 尝试走代理重试
                         if( !retriedViaProxy ) {
                             info.directly = false
-                            onStreamReady(info)
+                            forward(info)
                             retriedViaProxy = true
                             return
                         }
