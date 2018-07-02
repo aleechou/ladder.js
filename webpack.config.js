@@ -2,14 +2,13 @@ var path = require('path')
 
 module.exports = {
     entry: {
-        mainwindow: "./src/mainwnd/mainwindow",
-        quickwnd: "./src/quickwnd/quickwindow"
+        menu: "./src/menu/menu.js"
     },
 
     output: {
         path: path.resolve(__dirname, './dist'),
         publicPath: '/dist/',
-        filename: '[name].build.js'
+        filename: '[name].js'
     },
     module: {
         rules: [{
@@ -25,12 +24,6 @@ module.exports = {
                         loader: 'vue-loader',
                         options: {
                             
-                        }
-                    },
-                    {
-                        loader: 'iview-loader',
-                        options: {
-                            prefix: false
                         }
                     }
                 ]
@@ -51,10 +44,9 @@ module.exports = {
         overlay: true
     },
     externals: {
-        "vue/dist/vue.js": "window.Vue",
-        "iview/dist/iview.js": "window.iview"
+        "vue/dist/vue.js": "window.Vue"
     }
 }
 
 
-require("./auto-register-vue-component")(module.exports, __dirname, "src")
+// require("./auto-register-vue-component")(module.exports, __dirname, "src")

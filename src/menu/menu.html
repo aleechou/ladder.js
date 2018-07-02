@@ -1,0 +1,80 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1,minimal-ui" name="viewport">
+    <link rel="stylesheet" href="../../lib/google-fonts.css">
+    <link rel="stylesheet" href="../../node_modules/vue-material/dist/vue-material.css">
+    
+    <link rel="stylesheet" href="../../node_modules/vue-material/dist/theme/default.css">
+    <style>
+    .md-ripple {
+        height: auto
+    }
+    #app {
+        width: 320px;
+        height: 400px;
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+    }
+    .main {
+        flex:1;
+        display:none
+    }
+    .badge {
+        width: 19px;
+        height: 19px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: #fff;
+        border-radius: 100%;
+        color: #000;
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 600;
+        letter-spacing: -.05em;
+        font-family: 'Roboto Mono', monospace;
+    }
+    </style>
+</head>
+<body>
+    <div id="app">
+
+        <exit ref='exit'></exit>
+        <settings ref='settings'></settings>
+        
+        <md-bottom-bar md-type="shift">
+            <md-bottom-bar-item md-label="设置" md-icon="build" @click="switchPage('settings')"></md-bottom-bar-item>
+            <md-bottom-bar-item id="item-posts">
+                <md-icon class="md-bottom-bar-icon material-icons">swap_horiz</md-icon>
+                <span class="md-bottom-bar-label">隧道</span>
+                <i class="badge" v-if="newPosts">{{ newPosts }}</i>
+            </md-bottom-bar-item>
+            <md-bottom-bar-item md-label="服务器" md-icon="filter_drama"></md-bottom-bar-item>
+            <md-bottom-bar-item md-label="规则" md-icon="check_circle_outline"></md-bottom-bar-item>
+            <md-bottom-bar-item md-label="退出" md-icon="power_settings_new" @click="switchPage('exit')"></md-bottom-bar-item>
+        </md-bottom-bar>
+    </div>
+
+    <script>
+    if(!Object.values) {
+        Object.values = function(obj) {
+            return Object.keys(obj).map(e => obj[e])
+        }
+    }
+    if(typeof require!='undefined')
+        window.nodeRequire = require;
+    delete window.require;
+    delete window.exports;
+    delete window.module;
+    </script>
+    <script src="../../lib/jquery.js"></script>
+    <script src="../../node_modules/vue/dist/vue.js"></script>
+    <script src="../../node_modules/vue-material/dist/vue-material.js"></script>
+    <script src="../../dist/menu.js"></script>
+</body>
+</html>

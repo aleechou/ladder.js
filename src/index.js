@@ -1,22 +1,11 @@
-require("./store.js")
+const cluster = require('cluster')
+if (cluster.isMaster) {
+    require(__dirname+"/main.js")
+}
+else{
+    require(__dirname+"/worker.js")
+}
 
-$store.change(console.log)
-
-;
-(async() => {
-
-    if ($store.config.debug)
-        qnode.window.openConsole()
-
-    var mainwnd = await qnode.window.create()
-    await mainwnd.load("file://" + __dirname + "/mainwnd/mainwindow.html", () => {
-        mainwnd.bridgeShadowObject($store, ($store) => {
-            window.$store = $store
-            initApp()
-        })
-    })
-    mainwnd.show()
-
-
-
-})()
+process.on('uncaughtException', function(err) {
+    console.error('Error caught in uncaughtException event:', err);
+});
