@@ -3,3 +3,4 @@ package-lock.json
 .vscode/
 **/*-shadow.js
 .DS_Store
+log.txt
