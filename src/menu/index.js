@@ -5,18 +5,23 @@ const child_process = require('child_process')
 let tray = null
 let menuWnd = null
 
+
+exports.bGlobalProxy = false
+
 app.on('ready', () => {
     menuWnd = new BrowserWindow({width: 320, height: 400, frame: false, show: true})
     menuWnd.on('closed', process.exit)
+    // 失焦隐藏窗口
     menuWnd.on('blur', ()=>{
-        // menuWnd.hide()
+        if(!process.argv.include('-d'))
+            menuWnd.hide()
     })
     menuWnd.loadURL(`file://${__dirname}/index.html`)
 
-    menuWnd.webContents.openDevTools()
+    // 调试控制台
+    process.argv.include('-d') && menuWnd.webContents.openDevTools()
 
     tray = new Tray(__dirname+'/../../assert/ladder.png')
-    tray.setToolTip('ladder.js')
     tray.on('click', (event, bounds, position)=>{
         menuWnd.setPosition(bounds.x, bounds.y+bounds.height)
         menuWnd.show()
@@ -59,9 +64,9 @@ exports.dispatchNewTunnel = function(info, worker) {
     menuWnd.webContents.send('tunnel-new', info)
 
     worker.on('exit', () => {
-        menuWnd.webContents.send('tunnel-closed', info.reqid)
+        try{
+            menuWnd.webContents.send('tunnel-closed', info.reqid)
+        }catch(e){}
     })
 
 }
-
-exports.bGlobalProxy = false

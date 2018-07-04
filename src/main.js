@@ -4,6 +4,21 @@ const socksServer = require('./proxy/socks5-server')
 const router = require('./proxy/router.js')
 const trayMenu = require(__dirname+'/menu')
 const lsof = require(__dirname+'/misc/lsof')
+const fs = require('fs')
+
+try{
+    fs.mkdirSync(__dirname+"/../data")
+}catch(e){}
+
+// 加载数据
+try{
+    global.settings = require(__dirname+"/../data/config.json")
+}catch(e){
+    global.settings = {
+        servers: [],
+        rules: []
+    }
+}
 
 var assigned_req_id = 0
 global.workersPool = {}
