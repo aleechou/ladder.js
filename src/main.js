@@ -3,40 +3,38 @@ const socks = require('socksv5')
 const socksServer = require('./proxy/socks5-server')
 const router = require('./proxy/router.js')
 const trayMenu = require(__dirname+'/menu')
-const lsof = require(__dirname+'/misc/lsof')
 const fs = require('fs')
+const os = require(__dirname+'/misc/os')
 
-try{
-    fs.mkdirSync(__dirname+"/../data")
-}catch(e){}
 
-// 加载数据
-try{
-    global.settings = require(__dirname+"/../data/config.json")
-}catch(e){
-    global.settings = {
-        servers: [],
-        rules: []
-    }
+try{ fs.mkdirSync(__dirname+"/../data") }catch(e){}
+try{ fs.mkdirSync(__dirname+"/../data/keys") }catch(e){}
+
+// 全局对象
+global.$Settings = require(__dirname+'/settings')
+global.$WorkersPool = {}
+
+// 自动设置操作系统的代理设置
+if( $Settings.proxy.hookSystem ) {
+    os.hookSystem(true)
 }
 
 var assigned_req_id = 0
-global.workersPool = {}
 
 var server = socksServer.createServer(function(info, upstream) {
 
     info.reqid = assigned_req_id++;
-    info.directly = !trayMenu.bGlobalProxy && !router.isBlocked(info.dstAddr)
+    info.directly = !$Settings.proxy.global && !router.isBlocked(info.dstAddr)
 
     let worker = cluster.fork()
-    workersPool[info.reqid] = worker
+    $WorkersPool[info.reqid] = worker
 
     worker.info = info
     worker.on('exit', () => {
         upstream.end()
         console.log(info.reqid, 'work exited. remain:', Object.keys(cluster.workers).length)
 
-        delete workersPool[info.reqid]
+        delete $WorkersPool[info.reqid]
     })
 
 
@@ -57,7 +55,7 @@ var server = socksServer.createServer(function(info, upstream) {
 
     worker.send(info, upstream)
 
-    lsof.i(info.srcPort,(err, from)=>{
+    os.lsof(info.srcPort,(err, from)=>{
         info.srcApp = err? {}: from
         console.log(info)
 
@@ -68,7 +66,7 @@ var server = socksServer.createServer(function(info, upstream) {
     console.log("dynamic port error", error)
 })
 .useAuth(socks.auth.None())
-.listen(1080, 'localhost', function() {
-    console.log('SOCKSv5 proxy server started on port 1080');
+.listen($Settings.proxy.port, $Settings.proxy.bind, function() {
+    console.log('SOCKSv5 proxy server started on port '+$Settings.proxy.port);
 })
 

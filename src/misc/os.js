@@ -1,6 +1,16 @@
 const child_process = require('child_process')
+const os = require('os')
 
-exports.i = function(port, callback){
+exports.hookSystem = function(hook) {
+    if( os.platform()=='darwin' ){
+        child_process.exec(hook?
+            "networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 "+$Settings.proxy.port:
+            "networksetup -setsocksfirewallproxystate Wi-Fi off"
+        )
+    }
+}
+
+exports.lsof = function(port, callback){
     child_process.exec(
         `lsof -i:${port} -P | grep "${port}->"`
         ,(err, stdout, stderr)=>{

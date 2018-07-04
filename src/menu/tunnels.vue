@@ -67,7 +67,7 @@
 var {ipcRenderer} = typeof nodeRequire!='undefined'? nodeRequire("electron"): {on:()=>{}}
 
 export default {
-
+    name: 'Tunnels' ,
     data(){
         return {
             activeTunnels: [],

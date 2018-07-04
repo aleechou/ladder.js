@@ -1,19 +1,15 @@
 const {app, Tray, BrowserWindow, ipcMain} = require('electron')
-const os = require('os')
-const child_process = require('child_process')
+const os = require(__dirname+'/../misc/os')
 
 let tray = null
 let menuWnd = null
-
-
-exports.bGlobalProxy = false
 
 app.on('ready', () => {
     menuWnd = new BrowserWindow({width: 320, height: 400, frame: false, show: true})
     menuWnd.on('closed', process.exit)
     // 失焦隐藏窗口
     menuWnd.on('blur', ()=>{
-        if(!process.argv.include('-d'))
+        if(!process.argv.includes('-d'))
             menuWnd.hide()
     })
     menuWnd.loadURL(`file://${__dirname}/index.html`)
@@ -29,31 +25,46 @@ app.on('ready', () => {
 })
 
 ipcMain.on('exit', process.exit)
-ipcMain.on('setting', function(window, name, value){
-    if(exports[name]!==undefined) {
-        exports[name] = value
+ipcMain.on('proxy-setting', function(window, name, value){
+    console.log(name, value)
+    if($Settings.proxy[name]!==undefined) {
+        $Settings.proxy[name] = value
+
+        console.log($Settings)
+        $Settings.save()
     }
 
     // 设置为操作系统的代理
-    if(name=='bHookSystem') {
-        if( os.platform()=='darwin' ){
-            child_process.exec(value?
-                "networksetup -setsocksfirewallproxy Wi-Fi 127.0.0.1 1080":
-                "networksetup -setsocksfirewallproxystate Wi-Fi off"
-            )
-        }
+    if(name=='hookSystem') {
+        os.hookSystem(value)
     }
 })
 
 ipcMain.on('disconnect-tunnel', function(window, reqid){
-    var worker = workersPool[reqid]
+    var worker = $WorkersPool[reqid]
     if(!worker) {
         return
     }
     worker.kill()
 })
+ipcMain.on('server-new', function(window, config){
+    $Settings.servers.push(config)
+    $Settings.save()
+})
+ipcMain.on('server-remove', function(window, index){
+    $Settings.servers.slice(index, 1)
+    $Settings.save()
+})
+ipcMain.on('server-save', function(window, index, config){
+    $Settings.servers[index] = config
+    $Settings.save()
+})
 
-
+// 窗口向主进程请求 settings
+ipcMain.on('pull-settings', (from)=>{
+    // console.log(window)
+    from.sender.send('push-settings', $Settings)
+})
 
 exports.dispatchNewTunnel = function(info, worker) {
     if(!menuWnd) {

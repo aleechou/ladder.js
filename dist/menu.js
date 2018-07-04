@@ -183,10 +183,35 @@ Vue.use(VueMaterial.default);
 
 
 
-new Vue({
-    el: '#app',
-    components: { MainWnd: __WEBPACK_IMPORTED_MODULE_0__mainwnd_vue__["a" /* default */] }
-});
+function InitApp() {
+    window.$app = new Vue({
+        el: '#app',
+        components: { MainWnd: __WEBPACK_IMPORTED_MODULE_0__mainwnd_vue__["a" /* default */] }
+    });
+}
+
+// in electron
+if (typeof nodeRequire != 'undefined') {
+    var { ipcRenderer } = nodeRequire("electron");
+    window.$ipc = ipcRenderer;
+
+    // 向主进程请求 settings
+    $ipc.send('pull-settings');
+
+    // 从主进程接收 settings
+    $ipc.on('push-settings', (from, settings) => {
+        console.log(from, settings);
+        window.$Settings = settings;
+
+        // 创建 App
+        InitApp();
+    });
+}
+
+// in browser
+else {
+        InitApp();
+    }
 
 /***/ }),
 /* 2 */
@@ -265,14 +290,14 @@ if (false) {(function () {
 if (typeof nodeRequire != 'undefined') var { ipcRenderer } = nodeRequire("electron");
 
 /* harmony default export */ __webpack_exports__["a"] = ({
+    name: 'Settings',
     data: () => ({
-        bGlobalProxy: false,
-        bHookSystem: false
+        proxy: $Settings.proxy
     }),
 
     methods: {
         onSettingChanged(dataName) {
-            ipcRenderer.send('setting', dataName, this[dataName]);
+            ipcRenderer.send('proxy-setting', dataName, this.proxy[dataName]);
         }
     }
 });
@@ -301,15 +326,15 @@ var render = function() {
                 {
                   on: {
                     change: function($event) {
-                      _vm.onSettingChanged("bGlobalProxy")
+                      _vm.onSettingChanged("global")
                     }
                   },
                   model: {
-                    value: _vm.bGlobalProxy,
+                    value: _vm.proxy.global,
                     callback: function($$v) {
-                      _vm.bGlobalProxy = $$v
+                      _vm.$set(_vm.proxy, "global", $$v)
                     },
-                    expression: "bGlobalProxy"
+                    expression: "proxy.global"
                   }
                 },
                 [_vm._v("全局代理")]
@@ -327,15 +352,15 @@ var render = function() {
                   staticClass: "md-primary",
                   on: {
                     change: function($event) {
-                      _vm.onSettingChanged("bHookSystem")
+                      _vm.onSettingChanged("hookSystem")
                     }
                   },
                   model: {
-                    value: _vm.bHookSystem,
+                    value: _vm.proxy.hookSystem,
                     callback: function($$v) {
-                      _vm.bHookSystem = $$v
+                      _vm.$set(_vm.proxy, "hookSystem", $$v)
                     },
-                    expression: "bHookSystem"
+                    expression: "proxy.hookSystem"
                   }
                 },
                 [_vm._v("系统")]
@@ -490,7 +515,7 @@ if (false) {(function () {
 var { ipcRenderer } = typeof nodeRequire != 'undefined' ? nodeRequire("electron") : { on: () => {} };
 
 /* harmony default export */ __webpack_exports__["a"] = ({
-
+    name: 'Tunnels',
     data() {
         return {
             activeTunnels: [],
