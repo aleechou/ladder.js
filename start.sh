@@ -1,2 +1,3 @@
 #! /bin/bash
-`cat node_modules/electron/path.txt` src
+
+node_modules/electron/`cat node_modules/electron/path.txt` src > data/log.txt
