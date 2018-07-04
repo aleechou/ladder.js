@@ -19,7 +19,7 @@ app.on('ready', () => {
     menuWnd.loadURL(`file://${__dirname}/index.html`)
 
     // 调试控制台
-    process.argv.include('-d') && menuWnd.webContents.openDevTools()
+    process.argv.includes('-d') && menuWnd.webContents.openDevTools()
 
     tray = new Tray(__dirname+'/../../assert/ladder.png')
     tray.on('click', (event, bounds, position)=>{
