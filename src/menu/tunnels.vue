@@ -1,45 +1,54 @@
 <template>
     <md-content class="main" style="flex-direction: column; padding-left: 10px; padding-right: 10px;">
 
-        <div style="font-size:13; ">
-            <md-checkbox v-model="showDirectly" class="md-primary">直接连接</md-checkbox>
-            <md-checkbox v-model="showProxy" class="md-primary">代理隧道</md-checkbox>
+        <div style="font-size:13; display: flex;">
+            <v-checkbox small v-model="showDirectly" label="直接连接"></v-checkbox>
+            <v-checkbox small v-model="showProxy" label="代理隧道"></v-checkbox>
 
-            <button @click="add">+</button>
-            <button @click="plus">-</button>
+            <v-btn small flat icon @click="add"><v-icon dark>add</v-icon></v-btn>
+            <v-btn small flat icon @click="plus"><v-icon>remove</v-icon></v-btn>
         </div>
 
-        <div style="overflow-y: scroll;" name="list" is="transition-group">
+        <div class="tunnel-list" name="list" is="transition-group">
             <div style="width: 100%"
                     v-for="(tunnel, index) of activeTunnels"
                     v-if="tunnel.directly? showDirectly: showProxy"
                     :key="tunnel.reqid"
-                    @mouseover="tunnel.hover=true"
-                    @mouseout="tunnel.hover=false"
+                    @click="expandeTunnelDetail(tunnel)"
                     ref="tunnelitems">
   
-                    <div class="md-dense md-primary tunnel-summary" style="width: 100%; display: flex">
-                        <div style="flex:1" v-bind:class="{'directly': !!tunnel.directly}"
-                            @click="tunnel.detail=!tunnel.detail">
-                            <md-icon v-if="!tunnel.directly" style="color: green;">
-                                swap_horiz
-                                <md-tooltip md-direction="bottom">使用代理隧道</md-tooltip>
-                            </md-icon>
+                    <div class="md-dense md-primary tunnel-summary" style="cursor: pointer; width: 100%; display: flex">
+                        <div style="flex:1" v-bind:class="{'directly': !!tunnel.directly}">
+
+                            <v-icon title="通过代理连接" v-if="!tunnel.directly" style="color: green;">swap_horiz</v-icon>
 
                             <span>{{tunnel.dstAddr}}</span>
                             <span style="color:gray">:{{tunnel.dstPort}}</span>
                         </div>
-
-                        <a v-show="tunnel.hover" href="javascript:void(0)"
-                            @click="tunnel.detail=!tunnel.detail">...</a>
                     </div>
 
-                    <transition name="bounce">
+                    <transition name="fade">
                         <div v-show="tunnel.detail" class='tunnel-detail'>
+
+                            <div style="display:flex">
+                                <div style="flex:1">
+                                    <b>Source:</b>
+                                    {{tunnel.srcAddr}}:{{tunnel.srcPort}}
+                                </div>
+
+                                <div>
+                                    <b>PID:</b>
+                                    {{tunnel.srcApp.pid}}
+                                </div>
+                            </div>
                             <div>
-                                <span>
-                                    {{tunnel.srcApp.name}}
-                                    (PID: {{tunnel.srcApp.pid}})
+                                <b>APP:</b>
+                                <b style="margin-left:10px">{{tunnel.srcApp.name}}</b>
+                            </div>
+                            <div>
+                                <span class="app-path">
+                                    {{tunnel.srcApp.path}}
+                                    {{tunnel.srcApp.argv}}
                                 </span>
                             </div>
 
@@ -100,25 +109,35 @@ export default {
         } ,
 
         prependTunnel(info) {
-            info.hover = false
             info.detail = false
             this.tunnelRemains ++
             this.activeTunnels.unshift(info)
 
             this.$nextTick(()=>{
                 $('.tunnel-detail:not(.hasinit)').each(function (){
-                    tippy(this.querySelectorAll("[title]"), {
-                        delay: 100,
-                        arrow: true,
-                        arrowType: 'round',
-                        size: 'small',
-                        duration: 500,
-                        animation: 'scale'
-                    })
+                    // tippy(this.querySelectorAll("[title]"), {
+                    //     delay: 100,
+                    //     arrow: true,
+                    //     arrowType: 'round',
+                    //     size: 'small',
+                    //     duration: 200,
+                    //     animation: 'scale'
+                    // })
 
                     $(this).addClass('hasinit')
                 })
             })
+        } ,
+
+        expandeTunnelDetail(currentTunnel) {
+            if( currentTunnel.detail ){
+                currentTunnel.detail = false
+            }
+            else {
+                for(var tunnel of this.activeTunnels) {
+                    tunnel.detail = tunnel==currentTunnel
+                } 
+            }
         } ,
 
         randomIndex: function () {
@@ -129,7 +148,7 @@ export default {
                 directly: false, 
                 dstAddr:'www.baidu.com', 
                 srcApp:{pid:1234, name:'firefox'}, 
-                dstPort:443, hover:false, detail:false,
+                dstPort:443, detail:false,
                 reqid: this.tunnelId ++
             })
         } ,
@@ -157,9 +176,6 @@ export default {
 .md-list-item-container{
     font-size: 14 ;
 }
-.tunnel-list .md-list-item-container {
-    font-size: 13 ;
-}
 
 .directly {
     color: gray;
@@ -169,7 +185,7 @@ export default {
     min-height: 40px;
 }
 
-.md-button.md-dense {
+v-btn.small {
     min-width: 20px;
     height: 18px;
     font-size: 10px
@@ -177,6 +193,25 @@ export default {
 
 .md-tooltip {
     font-size: 10;
+}
+
+.tunnel-list{
+    overflow-x: hidden;
+    /* overflow-y: scroll; */
+}
+
+.tunnel-detail {
+    padding-left: 15px;
+    padding-right: 15px;
+    font-size:12;
+}
+
+.app-path {
+    word-wrap: break-word;
+    color: gray;
+}
+.app-path {
+    color: black;
 }
 
 /* 隧道列表动画 */
@@ -190,7 +225,7 @@ export default {
 }
 
 /* 隧道详情动画 */
-.bounce-enter-active {
+/* .bounce-enter-active {
   animation: bounce-in .5s;
 }
 .bounce-leave-active {
@@ -206,6 +241,13 @@ export default {
   100% {
     transform: scale(1);
   }
+} */
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .3s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
 }
 
 </style>

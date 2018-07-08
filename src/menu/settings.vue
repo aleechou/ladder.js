@@ -1,15 +1,17 @@
 <template>
+    <div id='pageSettings' class="main">
 
-    <md-content id='pageSettings' class="main">
-        <md-list>
-            <md-list-item>
-                <md-switch v-model="proxy.global" @change="onSettingChanged('global')">全局代理</md-switch>
-            </md-list-item>
-            <md-list-item>
-                <md-switch v-model="proxy.hookSystem" class="md-primary" @change="onSettingChanged('hookSystem')">系统</md-switch>
-            </md-list-item>
-        </md-list>
-    </md-content>
+        <div>
+            <v-switch label="全局代理" v-model="proxy.global" @change="onSettingChanged('global')"></v-switch>
+        </div>
+        <div>
+            <v-switch label="设置为操作系统的代理" v-model="proxy.asSystemProxy" @change="onSettingChanged('asSystemProxy')"></v-switch>
+        </div>
+        <div>
+            <v-switch label="设置为Git的代理" v-model="proxy.asGitProxy" @change="onSettingChanged('asGitProxy')"></v-switch>
+        </div>
+
+    </div>
 
 
 </template>
@@ -27,10 +29,15 @@ export default {
 
     , methods: {
         onSettingChanged(dataName) {
+            console.log(dataName)
             ipcRenderer.send('proxy-setting', dataName, this.proxy[dataName])
         } ,
     }
 }
-
-
 </script>
+
+<style>
+#pageSettings {
+    flex-direction: column;
+}
+</style>

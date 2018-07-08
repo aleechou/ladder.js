@@ -185,7 +185,7 @@ Vue.use(VueMaterial.default);
 
 function InitApp() {
     window.$app = new Vue({
-        el: '#app',
+        el: 'v-app',
         components: { MainWnd: __WEBPACK_IMPORTED_MODULE_0__mainwnd_vue__["a" /* default */] }
     });
 }
@@ -221,6 +221,10 @@ else {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_13_5_0_vue_loader_lib_selector_type_script_index_0_bustCache_settings_vue__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_13_5_0_vue_loader_lib_template_compiler_index_id_data_v_e281236c_hasScoped_false_buble_transforms_node_modules_13_5_0_vue_loader_lib_selector_type_template_index_0_bustCache_settings_vue__ = __webpack_require__(4);
 var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(27)
+}
 var normalizeComponent = __webpack_require__(0)
 /* script */
 
@@ -229,7 +233,7 @@ var normalizeComponent = __webpack_require__(0)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
-var __vue_styles__ = null
+var __vue_styles__ = injectStyle
 /* scopeId */
 var __vue_scopeId__ = null
 /* moduleIdentifier (server only) */
@@ -286,6 +290,8 @@ if (false) {(function () {
 //
 //
 //
+//
+//
 
 if (typeof nodeRequire != 'undefined') var { ipcRenderer } = nodeRequire("electron");
 
@@ -297,6 +303,7 @@ if (typeof nodeRequire != 'undefined') var { ipcRenderer } = nodeRequire("electr
 
     methods: {
         onSettingChanged(dataName) {
+            console.log(dataName);
             ipcRenderer.send('proxy-setting', dataName, this.proxy[dataName]);
         }
     }
@@ -311,69 +318,73 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "md-content",
-    { staticClass: "main", attrs: { id: "pageSettings" } },
-    [
-      _c(
-        "md-list",
-        [
-          _c(
-            "md-list-item",
-            [
-              _c(
-                "md-switch",
-                {
-                  on: {
-                    change: function($event) {
-                      _vm.onSettingChanged("global")
-                    }
-                  },
-                  model: {
-                    value: _vm.proxy.global,
-                    callback: function($$v) {
-                      _vm.$set(_vm.proxy, "global", $$v)
-                    },
-                    expression: "proxy.global"
-                  }
-                },
-                [_vm._v("全局代理")]
-              )
-            ],
-            1
-          ),
-          _vm._v(" "),
-          _c(
-            "md-list-item",
-            [
-              _c(
-                "md-switch",
-                {
-                  staticClass: "md-primary",
-                  on: {
-                    change: function($event) {
-                      _vm.onSettingChanged("hookSystem")
-                    }
-                  },
-                  model: {
-                    value: _vm.proxy.hookSystem,
-                    callback: function($$v) {
-                      _vm.$set(_vm.proxy, "hookSystem", $$v)
-                    },
-                    expression: "proxy.hookSystem"
-                  }
-                },
-                [_vm._v("系统")]
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
+  return _c("div", { staticClass: "main", attrs: { id: "pageSettings" } }, [
+    _c(
+      "div",
+      [
+        _c("v-switch", {
+          attrs: { label: "全局代理" },
+          on: {
+            change: function($event) {
+              _vm.onSettingChanged("global")
+            }
+          },
+          model: {
+            value: _vm.proxy.global,
+            callback: function($$v) {
+              _vm.$set(_vm.proxy, "global", $$v)
+            },
+            expression: "proxy.global"
+          }
+        })
+      ],
+      1
+    ),
+    _vm._v(" "),
+    _c(
+      "div",
+      [
+        _c("v-switch", {
+          attrs: { label: "设置为操作系统的代理" },
+          on: {
+            change: function($event) {
+              _vm.onSettingChanged("asSystemProxy")
+            }
+          },
+          model: {
+            value: _vm.proxy.asSystemProxy,
+            callback: function($$v) {
+              _vm.$set(_vm.proxy, "asSystemProxy", $$v)
+            },
+            expression: "proxy.asSystemProxy"
+          }
+        })
+      ],
+      1
+    ),
+    _vm._v(" "),
+    _c(
+      "div",
+      [
+        _c("v-switch", {
+          attrs: { label: "设置为Git的代理" },
+          on: {
+            change: function($event) {
+              _vm.onSettingChanged("asGitProxy")
+            }
+          },
+          model: {
+            value: _vm.proxy.asGitProxy,
+            callback: function($$v) {
+              _vm.$set(_vm.proxy, "asGitProxy", $$v)
+            },
+            expression: "proxy.asGitProxy"
+          }
+        })
+      ],
+      1
+    )
+  ])
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -511,6 +522,15 @@ if (false) {(function () {
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 var { ipcRenderer } = typeof nodeRequire != 'undefined' ? nodeRequire("electron") : { on: () => {} };
 
@@ -548,25 +568,34 @@ var { ipcRenderer } = typeof nodeRequire != 'undefined' ? nodeRequire("electron"
         },
 
         prependTunnel(info) {
-            info.hover = false;
             info.detail = false;
             this.tunnelRemains++;
             this.activeTunnels.unshift(info);
 
             this.$nextTick(() => {
                 $('.tunnel-detail:not(.hasinit)').each(function () {
-                    tippy(this.querySelectorAll("[title]"), {
-                        delay: 100,
-                        arrow: true,
-                        arrowType: 'round',
-                        size: 'small',
-                        duration: 500,
-                        animation: 'scale'
-                    });
+                    // tippy(this.querySelectorAll("[title]"), {
+                    //     delay: 100,
+                    //     arrow: true,
+                    //     arrowType: 'round',
+                    //     size: 'small',
+                    //     duration: 200,
+                    //     animation: 'scale'
+                    // })
 
                     $(this).addClass('hasinit');
                 });
             });
+        },
+
+        expandeTunnelDetail(currentTunnel) {
+            if (currentTunnel.detail) {
+                currentTunnel.detail = false;
+            } else {
+                for (var tunnel of this.activeTunnels) {
+                    tunnel.detail = tunnel == currentTunnel;
+                }
+            }
         },
 
         randomIndex: function () {
@@ -577,7 +606,7 @@ var { ipcRenderer } = typeof nodeRequire != 'undefined' ? nodeRequire("electron"
                 directly: false,
                 dstAddr: 'www.baidu.com',
                 srcApp: { pid: 1234, name: 'firefox' },
-                dstPort: 443, hover: false, detail: false,
+                dstPort: 443, detail: false,
                 reqid: this.tunnelId++
             });
         },
@@ -620,52 +649,56 @@ var render = function() {
     [
       _c(
         "div",
-        { staticStyle: { "font-size": "13" } },
+        { staticStyle: { "font-size": "13", display: "flex" } },
         [
+          _c("v-checkbox", {
+            attrs: { small: "", label: "直接连接" },
+            model: {
+              value: _vm.showDirectly,
+              callback: function($$v) {
+                _vm.showDirectly = $$v
+              },
+              expression: "showDirectly"
+            }
+          }),
+          _vm._v(" "),
+          _c("v-checkbox", {
+            attrs: { small: "", label: "代理隧道" },
+            model: {
+              value: _vm.showProxy,
+              callback: function($$v) {
+                _vm.showProxy = $$v
+              },
+              expression: "showProxy"
+            }
+          }),
+          _vm._v(" "),
           _c(
-            "md-checkbox",
+            "v-btn",
             {
-              staticClass: "md-primary",
-              model: {
-                value: _vm.showDirectly,
-                callback: function($$v) {
-                  _vm.showDirectly = $$v
-                },
-                expression: "showDirectly"
-              }
+              attrs: { small: "", flat: "", icon: "" },
+              on: { click: _vm.add }
             },
-            [_vm._v("直接连接")]
+            [_c("v-icon", { attrs: { dark: "" } }, [_vm._v("add")])],
+            1
           ),
           _vm._v(" "),
           _c(
-            "md-checkbox",
+            "v-btn",
             {
-              staticClass: "md-primary",
-              model: {
-                value: _vm.showProxy,
-                callback: function($$v) {
-                  _vm.showProxy = $$v
-                },
-                expression: "showProxy"
-              }
+              attrs: { small: "", flat: "", icon: "" },
+              on: { click: _vm.plus }
             },
-            [_vm._v("代理隧道")]
-          ),
-          _vm._v(" "),
-          _c("button", { on: { click: _vm.add } }, [_vm._v("+")]),
-          _vm._v(" "),
-          _c("button", { on: { click: _vm.plus } }, [_vm._v("-")])
+            [_c("v-icon", [_vm._v("remove")])],
+            1
+          )
         ],
         1
       ),
       _vm._v(" "),
       _c(
         "transition-group",
-        {
-          tag: "div",
-          staticStyle: { "overflow-y": "scroll" },
-          attrs: { name: "list" }
-        },
+        { tag: "div", staticClass: "tunnel-list", attrs: { name: "list" } },
         _vm._l(_vm.activeTunnels, function(tunnel, index) {
           return (tunnel.directly ? _vm.showDirectly : _vm.showProxy)
             ? _c(
@@ -676,11 +709,8 @@ var render = function() {
                   refInFor: true,
                   staticStyle: { width: "100%" },
                   on: {
-                    mouseover: function($event) {
-                      tunnel.hover = true
-                    },
-                    mouseout: function($event) {
-                      tunnel.hover = false
+                    click: function($event) {
+                      _vm.expandeTunnelDetail(tunnel)
                     }
                   }
                 },
@@ -689,36 +719,28 @@ var render = function() {
                     "div",
                     {
                       staticClass: "md-dense md-primary tunnel-summary",
-                      staticStyle: { width: "100%", display: "flex" }
+                      staticStyle: {
+                        cursor: "pointer",
+                        width: "100%",
+                        display: "flex"
+                      }
                     },
                     [
                       _c(
                         "div",
                         {
                           class: { directly: !!tunnel.directly },
-                          staticStyle: { flex: "1" },
-                          on: {
-                            click: function($event) {
-                              tunnel.detail = !tunnel.detail
-                            }
-                          }
+                          staticStyle: { flex: "1" }
                         },
                         [
                           !tunnel.directly
                             ? _c(
-                                "md-icon",
-                                { staticStyle: { color: "green" } },
-                                [
-                                  _vm._v(
-                                    "\n                            swap_horiz\n                            "
-                                  ),
-                                  _c(
-                                    "md-tooltip",
-                                    { attrs: { "md-direction": "bottom" } },
-                                    [_vm._v("使用代理隧道")]
-                                  )
-                                ],
-                                1
+                                "v-icon",
+                                {
+                                  staticStyle: { color: "green" },
+                                  attrs: { title: "通过代理连接" }
+                                },
+                                [_vm._v("swap_horiz")]
                               )
                             : _vm._e(),
                           _vm._v(" "),
@@ -729,32 +751,11 @@ var render = function() {
                           ])
                         ],
                         1
-                      ),
-                      _vm._v(" "),
-                      _c(
-                        "a",
-                        {
-                          directives: [
-                            {
-                              name: "show",
-                              rawName: "v-show",
-                              value: tunnel.hover,
-                              expression: "tunnel.hover"
-                            }
-                          ],
-                          attrs: { href: "javascript:void(0)" },
-                          on: {
-                            click: function($event) {
-                              tunnel.detail = !tunnel.detail
-                            }
-                          }
-                        },
-                        [_vm._v("...")]
                       )
                     ]
                   ),
                   _vm._v(" "),
-                  _c("transition", { attrs: { name: "bounce" } }, [
+                  _c("transition", { attrs: { name: "fade" } }, [
                     _c(
                       "div",
                       {
@@ -769,14 +770,44 @@ var render = function() {
                         staticClass: "tunnel-detail"
                       },
                       [
-                        _c("div", [
-                          _c("span", [
+                        _c("div", { staticStyle: { display: "flex" } }, [
+                          _c("div", { staticStyle: { flex: "1" } }, [
+                            _c("b", [_vm._v("Source:")]),
                             _vm._v(
                               "\n                                " +
-                                _vm._s(tunnel.srcApp.name) +
-                                "\n                                (PID: " +
+                                _vm._s(tunnel.srcAddr) +
+                                ":" +
+                                _vm._s(tunnel.srcPort) +
+                                "\n                            "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("div", [
+                            _c("b", [_vm._v("PID:")]),
+                            _vm._v(
+                              "\n                                " +
                                 _vm._s(tunnel.srcApp.pid) +
-                                ")\n                            "
+                                "\n                            "
+                            )
+                          ])
+                        ]),
+                        _vm._v(" "),
+                        _c("div", [
+                          _c("b", [_vm._v("APP:")]),
+                          _vm._v(" "),
+                          _c("b", { staticStyle: { "margin-left": "10px" } }, [
+                            _vm._v(_vm._s(tunnel.srcApp.name))
+                          ])
+                        ]),
+                        _vm._v(" "),
+                        _c("div", [
+                          _c("span", { staticClass: "app-path" }, [
+                            _vm._v(
+                              "\n                                " +
+                                _vm._s(tunnel.srcApp.path) +
+                                "\n                                " +
+                                _vm._s(tunnel.srcApp.argv) +
+                                "\n                            "
                             )
                           ])
                         ]),
@@ -1161,6 +1192,10 @@ if (false) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_13_5_0_vue_loader_lib_selector_type_script_index_0_bustCache_mainwnd_vue__ = __webpack_require__(18);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_13_5_0_vue_loader_lib_template_compiler_index_id_data_v_7824bc86_hasScoped_false_buble_transforms_node_modules_13_5_0_vue_loader_lib_selector_type_template_index_0_bustCache_mainwnd_vue__ = __webpack_require__(19);
 var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(25)
+}
 var normalizeComponent = __webpack_require__(0)
 /* script */
 
@@ -1169,7 +1204,7 @@ var normalizeComponent = __webpack_require__(0)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
-var __vue_styles__ = null
+var __vue_styles__ = injectStyle
 /* scopeId */
 var __vue_scopeId__ = null
 /* moduleIdentifier (server only) */
@@ -1237,6 +1272,18 @@ if (false) {(function () {
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -1249,7 +1296,7 @@ if (false) {(function () {
         activeTunnels: 0
     }),
     mounted() {
-        app.style.display = 'flex';
+        $(".app")[0].style.display = 'flex';
         this.$refs.tunnels.$el.style.display = 'flex';
     },
     methods: {
@@ -1296,20 +1343,28 @@ var render = function() {
       _c("exit", { ref: "exit" }),
       _vm._v(" "),
       _c(
-        "md-bottom-bar",
+        "v-bottom-nav",
         { attrs: { "md-type": "shift" } },
         [
-          _c("md-bottom-bar-item", {
-            attrs: { "md-label": "设置", "md-icon": "build" },
-            on: {
-              click: function($event) {
-                _vm.switchPage("settings")
+          _c(
+            "v-btn",
+            {
+              on: {
+                click: function($event) {
+                  _vm.switchPage("settings")
+                }
               }
-            }
-          }),
+            },
+            [
+              _c("span", [_vm._v("设置")]),
+              _vm._v(" "),
+              _c("v-icon", [_vm._v("build")])
+            ],
+            1
+          ),
           _vm._v(" "),
           _c(
-            "md-bottom-bar-item",
+            "v-btn",
             {
               attrs: { id: "item-posts" },
               on: {
@@ -1320,7 +1375,7 @@ var render = function() {
             },
             [
               _c(
-                "md-icon",
+                "v-icon",
                 { staticClass: "md-bottom-bar-icon material-icons" },
                 [_vm._v("swap_horiz")]
               ),
@@ -1338,32 +1393,56 @@ var render = function() {
             1
           ),
           _vm._v(" "),
-          _c("md-bottom-bar-item", {
-            attrs: { "md-label": "服务器", "md-icon": "filter_drama" },
-            on: {
-              click: function($event) {
-                _vm.switchPage("servers")
+          _c(
+            "v-btn",
+            {
+              on: {
+                click: function($event) {
+                  _vm.switchPage("servers")
+                }
               }
-            }
-          }),
+            },
+            [
+              _c("span", [_vm._v("服务器")]),
+              _vm._v(" "),
+              _c("v-icon", [_vm._v("filter_drama")])
+            ],
+            1
+          ),
           _vm._v(" "),
-          _c("md-bottom-bar-item", {
-            attrs: { "md-label": "规则", "md-icon": "check_circle_outline" },
-            on: {
-              click: function($event) {
-                _vm.switchPage("rules")
+          _c(
+            "v-btn",
+            {
+              on: {
+                click: function($event) {
+                  _vm.switchPage("rules")
+                }
               }
-            }
-          }),
+            },
+            [
+              _c("span", [_vm._v("规则")]),
+              _vm._v(" "),
+              _c("v-icon", [_vm._v("check_circle_outline")])
+            ],
+            1
+          ),
           _vm._v(" "),
-          _c("md-bottom-bar-item", {
-            attrs: { "md-label": "退出", "md-icon": "power_settings_new" },
-            on: {
-              click: function($event) {
-                _vm.switchPage("exit")
+          _c(
+            "v-btn",
+            {
+              on: {
+                click: function($event) {
+                  _vm.switchPage("exit")
+                }
               }
-            }
-          })
+            },
+            [
+              _c("span", [_vm._v("退出")]),
+              _vm._v(" "),
+              _c("v-icon", [_vm._v("power_settings_new")])
+            ],
+            1
+          )
         ],
         1
       )
@@ -1417,7 +1496,7 @@ exports = module.exports = __webpack_require__(22)(false);
 
 
 // module
-exports.push([module.i, "\n.md-list-item-container{\n    font-size: 14 ;\n}\n.tunnel-list .md-list-item-container {\n    font-size: 13 ;\n}\n.directly {\n    color: gray;\n}\n.md-list-item-content {\n    min-height: 40px;\n}\n.md-button.md-dense {\n    min-width: 20px;\n    height: 18px;\n    font-size: 10px\n}\n.md-tooltip {\n    font-size: 10;\n}\n\n/* 隧道列表动画 */\n.list-enter-active, .list-leave-active {\n  transition: all 1s;\n}\n.list-enter, .list-leave-to\n/* .list-leave-active for below version 2.1.8 */ {\n  opacity: 0;\n  transform: translateX(30px);\n}\n\n/* 隧道详情动画 */\n.bounce-enter-active {\n  animation: bounce-in .5s;\n}\n.bounce-leave-active {\n  animation: bounce-in .5s reverse;\n}\n@keyframes bounce-in {\n0% {\n    transform: scale(0);\n}\n50% {\n    transform: scale(1.5);\n}\n100% {\n    transform: scale(1);\n}\n}\n\n", ""]);
+exports.push([module.i, "\n.md-list-item-container{\n    font-size: 14 ;\n}\n.directly {\n    color: gray;\n}\n.md-list-item-content {\n    min-height: 40px;\n}\nv-btn.small {\n    min-width: 20px;\n    height: 18px;\n    font-size: 10px\n}\n.md-tooltip {\n    font-size: 10;\n}\n.tunnel-list{\n    overflow-x: hidden;\n    /* overflow-y: scroll; */\n}\n.tunnel-detail {\n    padding-left: 15px;\n    padding-right: 15px;\n    font-size:12;\n}\n.app-path {\n    word-wrap: break-word;\n    color: gray;\n}\n.app-path {\n    color: black;\n}\n\n/* 隧道列表动画 */\n.list-enter-active, .list-leave-active {\n  transition: all 1s;\n}\n.list-enter, .list-leave-to\n/* .list-leave-active for below version 2.1.8 */ {\n  opacity: 0;\n  transform: translateX(30px);\n}\n\n/* 隧道详情动画 */\n/* .bounce-enter-active {\n  animation: bounce-in .5s;\n}\n.bounce-leave-active {\n  animation: bounce-in .5s reverse;\n}\n@keyframes bounce-in {\n  0% {\n    transform: scale(0);\n  }\n  50% {\n    transform: scale(1.5);\n  }\n  100% {\n    transform: scale(1);\n  }\n} */\n.fade-enter-active, .fade-leave-active {\n  transition: opacity .3s;\n}\n.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {\n  opacity: 0;\n}\n\n", ""]);
 
 // exports
 
@@ -1756,6 +1835,86 @@ module.exports = function listToStyles (parentId, list) {
   }
   return styles
 }
+
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(26);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(23)("351b39b2", content, false);
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../node_modules/.0.28.11@css-loader/index.js!../../node_modules/.13.5.0@vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-7824bc86\",\"scoped\":false,\"hasInlineConfig\":false}!../../node_modules/.13.5.0@vue-loader/lib/selector.js?type=styles&index=0&bustCache!./mainwnd.vue", function() {
+     var newContent = require("!!../../node_modules/.0.28.11@css-loader/index.js!../../node_modules/.13.5.0@vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-7824bc86\",\"scoped\":false,\"hasInlineConfig\":false}!../../node_modules/.13.5.0@vue-loader/lib/selector.js?type=styles&index=0&bustCache!./mainwnd.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(22)(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n.v-bottom-nav{\n    -webkit-transform: translate(0, 0px);\n    transform: translate(0, 0px);\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(28);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(23)("47e53d68", content, false);
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../node_modules/.0.28.11@css-loader/index.js!../../node_modules/.13.5.0@vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-e281236c\",\"scoped\":false,\"hasInlineConfig\":false}!../../node_modules/.13.5.0@vue-loader/lib/selector.js?type=styles&index=0&bustCache!./settings.vue", function() {
+     var newContent = require("!!../../node_modules/.0.28.11@css-loader/index.js!../../node_modules/.13.5.0@vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-e281236c\",\"scoped\":false,\"hasInlineConfig\":false}!../../node_modules/.13.5.0@vue-loader/lib/selector.js?type=styles&index=0&bustCache!./settings.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(22)(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n#pageSettings {\n    flex-direction: column;\n}\n", ""]);
+
+// exports
 
 
 /***/ })

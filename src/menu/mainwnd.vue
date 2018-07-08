@@ -6,17 +6,29 @@
         <rules ref='rules'></rules>
         <exit ref='exit'></exit>
         
-        <md-bottom-bar md-type="shift">
-            <md-bottom-bar-item md-label="设置" md-icon="build" @click="switchPage('settings')"></md-bottom-bar-item>
-            <md-bottom-bar-item id="item-posts" @click="switchPage('tunnels')">
-                <md-icon class="md-bottom-bar-icon material-icons">swap_horiz</md-icon>
+        <v-bottom-nav md-type="shift">
+            <v-btn @click="switchPage('settings')">
+                <span>设置</span>
+                <v-icon>build</v-icon>
+            </v-btn>
+            <v-btn id="item-posts" @click="switchPage('tunnels')">
+                <v-icon class="md-bottom-bar-icon material-icons">swap_horiz</v-icon>
                 <span class="md-bottom-bar-label">隧道</span>
                 <i class="badge" v-if="activeTunnels">{{ activeTunnels }}</i>
-            </md-bottom-bar-item>
-            <md-bottom-bar-item md-label="服务器" md-icon="filter_drama" @click="switchPage('servers')"></md-bottom-bar-item>
-            <md-bottom-bar-item md-label="规则" md-icon="check_circle_outline" @click="switchPage('rules')"></md-bottom-bar-item>
-            <md-bottom-bar-item md-label="退出" md-icon="power_settings_new" @click="switchPage('exit')"></md-bottom-bar-item>
-        </md-bottom-bar>
+            </v-btn>
+            <v-btn @click="switchPage('servers')">
+                <span>服务器</span>
+                <v-icon>filter_drama</v-icon>
+            </v-btn>
+            <v-btn @click="switchPage('rules')">
+                <span>规则</span>
+                <v-icon>check_circle_outline</v-icon>
+            </v-btn>
+            <v-btn @click="switchPage('exit')">
+                <span>退出</span>
+                <v-icon>power_settings_new</v-icon>
+            </v-btn>
+        </v-bottom-nav>
     </div>
 </template>
 
@@ -33,7 +45,7 @@ export default {
         activeTunnels:0 ,
     }),
     mounted () {
-        app.style.display = 'flex'
+        $(".app")[0].style.display = 'flex'
         this.$refs.tunnels.$el.style.display = 'flex'
     },
     methods: {
@@ -54,3 +66,11 @@ export default {
     }
 }
 </script>
+
+
+<style>
+.v-bottom-nav{
+    -webkit-transform: translate(0, 0px);
+    transform: translate(0, 0px);
+}
+</style>

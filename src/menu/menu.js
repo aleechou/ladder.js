@@ -4,7 +4,7 @@ import MainWnd from './mainwnd.vue'
 
 function InitApp () {
     window.$app = new Vue({
-        el: '#app',
+        el: 'v-app',
         components: {MainWnd}
     })
 }

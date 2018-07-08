@@ -5,7 +5,7 @@ let tray = null
 let menuWnd = null
 
 app.on('ready', () => {
-    menuWnd = new BrowserWindow({width: 320, height: 400, frame: false, show: true})
+    menuWnd = new BrowserWindow({width: 380, height: 500, frame: false, show: true})
     menuWnd.on('closed', process.exit)
     // 失焦隐藏窗口
     menuWnd.on('blur', ()=>{
@@ -29,14 +29,38 @@ ipcMain.on('proxy-setting', function(window, name, value){
     console.log(name, value)
     if($Settings.proxy[name]!==undefined) {
         $Settings.proxy[name] = value
-
-        console.log($Settings)
         $Settings.save()
     }
 
+    // 全局代理
+    if(name=='global') {
+        for(var reqid in $WorkersPool){
+            var worker = $WorkersPool[reqid]
+            
+            if( 
+                (value && worker.info.directly)         // 切换到全局模式，断开所有的 直连隧道
+                || (!value && worker.info.causeGlobal)  // 关闭全局模式，断开所有因全局模式的代理隧道
+            ) {
+                worker.kill()
+            }
+        }
+    }
+
     // 设置为操作系统的代理
-    if(name=='hookSystem') {
+    else if(name=='asSystemProxy') {
         os.hookSystem(value)
+    }
+
+    // 设置为 git 代理
+    else if(name=='asGitProxy') {
+        if(value) {
+            os.exec("git config --global http.proxy 'socks5://127.0.0.1:1080'")
+            os.exec("git config --global https.proxy 'socks5://127.0.0.1:1080'")
+        }
+        else {
+            os.exec("git config --global http.proxy ''")
+            os.exec("git config --global https.proxy ''")
+        }
     }
 })
 
@@ -62,7 +86,6 @@ ipcMain.on('server-save', function(window, index, config){
 
 // 窗口向主进程请求 settings
 ipcMain.on('pull-settings', (from)=>{
-    // console.log(window)
     from.sender.send('push-settings', $Settings)
 })
 

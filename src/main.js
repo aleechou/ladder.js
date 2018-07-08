@@ -7,6 +7,10 @@ const fs = require('fs')
 const os = require(__dirname+'/misc/os')
 
 
+os.ps(90418, (err, app, argv)=>{
+    console.log(app, argv)
+})
+
 try{ fs.mkdirSync(__dirname+"/../data") }catch(e){}
 try{ fs.mkdirSync(__dirname+"/../data/keys") }catch(e){}
 
@@ -19,14 +23,25 @@ if( $Settings.proxy.hookSystem ) {
     os.hookSystem(true)
 }
 
+
 var assigned_req_id = 0
 
-var server = socksServer.createServer(function(info, upstream) {
+var server = socksServer.createServer(async function(info, upstream) {
 
     info.reqid = assigned_req_id++;
-    info.directly = !$Settings.proxy.global && !router.isBlocked(info.dstAddr)
+    info.directly = true
+    info.causeRules = info.causeGlobal = false
 
-    let worker = cluster.fork()
+    if(router.isBlocked(info.dstAddr)) {
+        info.directly = false
+        info.byRules = true
+    }
+    else if($Settings.proxy.global) {
+        info.directly = false
+        info.causeGlobal = true
+    }
+
+    let worker = cluster.fork({servers: JSON.stringify($Settings.cacheServers)})
     $WorkersPool[info.reqid] = worker
 
     worker.info = info
@@ -36,7 +51,6 @@ var server = socksServer.createServer(function(info, upstream) {
 
         delete $WorkersPool[info.reqid]
     })
-
 
     upstream
         .on('error', (error) => {
@@ -53,14 +67,21 @@ var server = socksServer.createServer(function(info, upstream) {
         }
     })
 
-    worker.send(info, upstream)
+    worker.send([info,$Settings.servers] , upstream)
 
-    os.lsof(info.srcPort,(err, from)=>{
-        info.srcApp = err? {}: from
-        console.log(info)
+    // 根据来源端口，查询正在请求的应用程序
+    var fromPID = await os.lsof(info.srcPort)
+    if(fromPID) {
+        info.srcApp = await os.ps(fromPID)
+    }
+    if(!info.srcApp) {
+        info.srcApp = {}
+    }
 
-        trayMenu.dispatchNewTunnel(info, worker)
-    })
+    console.log(info.srcApp)
+
+    trayMenu.dispatchNewTunnel(info, worker)
+
 })
 .on("error", (error) => {
     console.log("dynamic port error", error)
