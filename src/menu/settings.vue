@@ -11,6 +11,9 @@
             <v-switch label="设置为Git的代理" v-model="proxy.asGitProxy" @change="onSettingChanged('asGitProxy')"></v-switch>
         </div>
 
+        <div>
+            <v-switch label="使用 gfwlist" v-model="proxy.useGFWList" @change="onSettingChanged('useGFWList')"></v-switch>
+        </div>
     </div>
 
 

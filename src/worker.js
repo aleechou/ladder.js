@@ -20,7 +20,7 @@ process.on('message', (argv, upstream) => {
     var retriedViaProxy = false
 
     upstream.on('close', () => {
-        console.log('upstream close', info)
+        // console.log('upstream close', info)
         process.exit()
     })
     
@@ -30,14 +30,14 @@ process.on('message', (argv, upstream) => {
 
         // 直接链接
         if (info.directly) {
-            tunnel.connectDirect(info, onStreamReady, upstream)
+            tunnel.connectDirect(info, onStreamReady)
             pendingStreamCount++
         }
 
         // 代理隧道
         else {
             for(var i=0;i<serverList.length;i++) {
-                tunnel.connectViaProxy(info, serverList[i], onStreamReady, info.reqid)
+                tunnel.connectViaProxy(info, serverList[i], onStreamReady)
                 pendingStreamCount++
             }
         }
@@ -78,10 +78,10 @@ process.on('message', (argv, upstream) => {
 
             if (error) {
                 console.log("E", info.reqid, error.proxy||"direct",
-                        error.dstAddr+":"+error.dstPort, time+"ms")
+                        error.dstHost+":"+error.dstPort, time+"ms")
 
                 if (error.cause && error.cause.code=="ECONNRESET") {
-                    console.log("block?", info.dstAddr)
+                    console.log("block?", info.dstHost)
 
                     // ECONNRESET 会在之前触发一次 onStreamReady
                     // 即被 block 的 downstream 会两次 callback
@@ -91,8 +91,8 @@ process.on('message', (argv, upstream) => {
                     }
                     
                     process.send({
-                        message: 'add router',
-                        addr: info.dstAddr
+                        message: 'add-router',
+                        dstHost: info.dstHost
                     })
 
                     // 尝试走代理重试
@@ -113,7 +113,7 @@ process.on('message', (argv, upstream) => {
                 accept()
 
                 downstream.on("close", () => {
-                    console.log("downstream closed", info.reqid, info.dstAddr+":"+info.dstPort)
+                    console.log("downstream closed", info.reqid, info.dstAddr)
                     process.exit()
                 })
 
@@ -122,7 +122,7 @@ process.on('message', (argv, upstream) => {
 
                 activestream = downstream
 
-                console.log(downstream.proxy ? "." : "=", info.reqid, info.dstAddr, downstream.proxy || "direct", time)
+                console.log(downstream.proxy ? "." : "=", info.reqid, info.dstHost, downstream.proxy || "direct", time)
 
             }
             // 较慢的链接
@@ -132,10 +132,10 @@ process.on('message', (argv, upstream) => {
 
                 // 代理比直连更快
                 if (!downstream.proxy) {
-                    console.log("find out faster route for", info.dstAddr, ", via ", activestream.proxy || "direct")
+                    console.log("find out faster route for", info.dstHost, ", via ", activestream.proxy || "direct")
                 }
 
-                console.log("x", info.reqid, info.dstAddr, downstream.proxy || "direct", Date.now() - requestTime)
+                console.log("x", info.reqid, info.dstHost, downstream.proxy || "direct", Date.now() - requestTime)
             }
         }
 

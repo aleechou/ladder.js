@@ -2,11 +2,12 @@
     <md-content class="main" style="flex-direction: column; padding-left: 10px; padding-right: 10px;">
 
         <div style="font-size:13; display: flex;">
-            <v-checkbox small v-model="showDirectly" label="直接连接"></v-checkbox>
-            <v-checkbox small v-model="showProxy" label="代理隧道"></v-checkbox>
+            显示隧道：
+            <v-checkbox small v-model="showDirectly" label="直连"></v-checkbox>
+            <v-checkbox small v-model="showProxy" label="代理"></v-checkbox>
 
-            <v-btn small flat icon @click="add"><v-icon dark>add</v-icon></v-btn>
-            <v-btn small flat icon @click="plus"><v-icon>remove</v-icon></v-btn>
+            <v-btn v-if=develop small flat icon @click="add"><v-icon dark>add</v-icon></v-btn>
+            <v-btn v-if=develop small flat icon @click="plus"><v-icon>remove</v-icon></v-btn>
         </div>
 
         <div class="tunnel-list" name="list" is="transition-group">
@@ -22,7 +23,7 @@
 
                             <v-icon title="通过代理连接" v-if="!tunnel.directly" style="color: green;">swap_horiz</v-icon>
 
-                            <span>{{tunnel.dstAddr}}</span>
+                            <span>{{tunnel.dstHost}}</span>
                             <span style="color:gray">:{{tunnel.dstPort}}</span>
                         </div>
                     </div>
@@ -53,15 +54,12 @@
                             </div>
 
                             <div>
-                                <md-button class="md-dense" title="将域名加入到白名单规则中。后续对该域名的请求，都经过代理服务器建立隧道">
-                                    白名单
-                                </md-button>
-                                <md-button class="md-dense" title="将域名加入到黑名单规则中。后续对该域名的请求不再经过代理服务器">
-                                    黑名单
-                                </md-button>
-                                <md-button class="md-dense md-accent" title="强行关闭这个正在工作的隧道" href="javascript:void(0)" @click="disconnect(tunnel)">
+                                <a v-show="!userRuleHasExists(tunnel.dstAddr)" class="md-dense" title="将该域名作为规则，添加到用户规则表。后续对该域名的请求，都经过代理服务器建立隧道" href="javascript:void(0)" @click="addToUserRules(tunnel.dstAddr)">
+                                    加为规则表
+                                </a>
+                                <a class="md-dense md-accent" title="强行关闭这个正在工作的隧道" href="javascript:void(0)" @click="disconnect(tunnel)">
                                     断开
-                                </md-button>
+                                </a>
                             </div>
                         </div>
                     </transition>
@@ -75,6 +73,13 @@
 <script>
 var {ipcRenderer} = typeof nodeRequire!='undefined'? nodeRequire("electron"): {on:()=>{}}
 
+var addrRuleCache = {}
+function regexpFromAddr(addr) {
+    if( !addrRuleCache[addr] )
+        addrRuleCache[addr] = "(^|\\.)" + addr.replace(/\./g, '\\.') + "$"
+    return addrRuleCache[addr]
+}
+
 export default {
     name: 'Tunnels' ,
     data(){
@@ -83,7 +88,8 @@ export default {
             tunnelRemains: 0,
             showDirectly: true,
             showProxy: true,
-            tunnelId: 0
+            tunnelId: 0,
+            develop: !!$Settings.develop,
         }
     } ,
     props: ['cbTunnelCountChanged'] ,
@@ -146,7 +152,8 @@ export default {
         add: function () {
             this.prependTunnel({
                 directly: false, 
-                dstAddr:'www.baidu.com', 
+                dstAddr:'www.baidu.com:443', 
+                dstHost:'www.baidu.com', 
                 srcApp:{pid:1234, name:'firefox'}, 
                 dstPort:443, detail:false,
                 reqid: this.tunnelId ++
@@ -157,6 +164,22 @@ export default {
             console.log(i)
             this.activeTunnels.splice(i, 1)
         } ,
+
+        userRuleHasExists(addr) {
+            var regexp = regexpFromAddr(addr)
+            for(var rule of $UserRules){
+                if( regexp == rule.txt ){
+                    return true
+                }
+            }
+            return false
+        } ,
+        addToUserRules(addr) {
+            var regexp = regexpFromAddr(addr)
+            console.log(regexp)
+            $ipc.send('user-rule-new', regexp)
+        }
+
     },
     watch:{
         tunnelRemains (val){

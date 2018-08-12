@@ -18,9 +18,12 @@ if(typeof nodeRequire!='undefined') {
     $ipc.send('pull-settings')
 
     // 从主进程接收 settings
-    $ipc.on('push-settings', (from, settings)=>{
-        console.log(from, settings)
-        window.$Settings = settings
+    $ipc.on('push-settings', (from, data)=>{
+        // console.log(from, settings)
+        window.$Settings = data[0]
+        window.$UserRules = data[1]
+
+        console.log(window.$UserRules)
 
         // 创建 App
         InitApp()

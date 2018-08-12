@@ -5,6 +5,7 @@ const router = require('./proxy/router.js')
 const trayMenu = require(__dirname+'/menu')
 const fs = require('fs')
 const os = require(__dirname+'/misc/os')
+const userRules = require(__dirname+"/user-rules.js")
 
 
 os.ps(90418, (err, app, argv)=>{
@@ -23,6 +24,9 @@ if( $Settings.proxy.hookSystem ) {
     os.hookSystem(true)
 }
 
+function isLocal(host) {
+    return ['127.0.0.1', 'localhost'].includes(host)
+}
 
 var assigned_req_id = 0
 
@@ -32,13 +36,30 @@ var server = socksServer.createServer(async function(info, upstream) {
     info.directly = true
     info.causeRules = info.causeGlobal = false
 
-    if(router.isBlocked(info.dstAddr)) {
-        info.directly = false
-        info.byRules = true
-    }
-    else if($Settings.proxy.global) {
-        info.directly = false
-        info.causeGlobal = true
+    info.dstHost = info.dstAddr
+    info.dstAddr = info.dstAddr + ":" + info.dstPort
+
+    if( !isLocal(info.dstHost) ) {
+
+        // 用户规则
+        var rule = userRules.needProxy(info.dstAddr)
+        if(rule) {
+            info.directly = false
+            info.byRules = true
+            info.byUserRule = rule.txt
+        }
+        
+        // gfwlist 规则
+        else if($Settings.proxy.useGFWList && router.isBlocked(info.dstHost)) {
+            info.directly = false
+            info.byRules = true
+        }
+
+        // 全局模式
+        else if($Settings.proxy.global) {
+            info.directly = false
+            info.causeGlobal = true
+        }
     }
 
     let worker = cluster.fork({servers: JSON.stringify($Settings.cacheServers)})
@@ -62,12 +83,12 @@ var server = socksServer.createServer(async function(info, upstream) {
         })
 
     worker.on('message',(params)=>{
-        if( params.message=='add router' ) {
-            router.addCache(params.addr)
+        if( params.message=='add-router' ) {
+            router.addCache(params.dstHost)
         }
     })
 
-    worker.send([info,$Settings.servers] , upstream)
+    worker.send([info,$Settings.servers] , upstream) 
 
     // 根据来源端口，查询正在请求的应用程序
     var fromPID = await os.lsof(info.srcPort)
@@ -78,9 +99,9 @@ var server = socksServer.createServer(async function(info, upstream) {
         info.srcApp = {}
     }
 
-    console.log(info.srcApp)
-
+    var t = Date.now()
     trayMenu.dispatchNewTunnel(info, worker)
+    console.log("send() ms", Date.now()-t)
 
 })
 .on("error", (error) => {

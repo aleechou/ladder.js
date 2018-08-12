@@ -1,5 +1,6 @@
 const {app, Tray, BrowserWindow, ipcMain} = require('electron')
 const os = require(__dirname+'/../misc/os')
+const userRules = require(__dirname+'/../user-rules.js')
 
 let tray = null
 let menuWnd = null
@@ -24,13 +25,31 @@ app.on('ready', () => {
     })
 })
 
+
+// 建立新隧道
+exports.dispatchNewTunnel = function(info, worker) {
+    if(!menuWnd) {
+        console.log("menuwnd not ready")
+        return
+    }
+
+    menuWnd.webContents.send('tunnel-new', info)
+
+    worker.on('exit', () => {
+        try{
+            menuWnd.webContents.send('tunnel-closed', info.reqid)
+        }catch(e){}
+    })
+
+}
+
+
+
 ipcMain.on('exit', process.exit)
 ipcMain.on('proxy-setting', function(window, name, value){
-    console.log(name, value)
-    if($Settings.proxy[name]!==undefined) {
-        $Settings.proxy[name] = value
-        $Settings.save()
-    }
+
+    $Settings.proxy[name] = value
+    $Settings.save()
 
     // 全局代理
     if(name=='global') {
@@ -69,6 +88,12 @@ ipcMain.on('proxy-setting', function(window, name, value){
     }
 })
 
+// 窗口渲染完成，向主进程请求 settings
+ipcMain.on('pull-settings', (window)=>{
+    window.sender.send('push-settings', [$Settings, userRules.rules])
+})
+
+// 断开隧道
 ipcMain.on('disconnect-tunnel', function(window, reqid){
     var worker = $WorkersPool[reqid]
     if(!worker) {
@@ -76,36 +101,34 @@ ipcMain.on('disconnect-tunnel', function(window, reqid){
     }
     worker.kill()
 })
+// 新增代理服务器 
 ipcMain.on('server-new', function(window, config){
     $Settings.servers.push(config)
     $Settings.save()
 })
+// 删除代理服务器
 ipcMain.on('server-remove', function(window, index){
     $Settings.servers.slice(index, 1)
     $Settings.save()
 })
+// 保存代理服务器
 ipcMain.on('server-save', function(window, index, config){
     $Settings.servers[index] = config
     $Settings.save()
 })
-
-// 窗口向主进程请求 settings
-ipcMain.on('pull-settings', (from)=>{
-    from.sender.send('push-settings', $Settings)
+// 用户规则修改
+ipcMain.on('user-rule-changed', (window, idx, rule)=>{
+    console.log(rule)
+    userRules.rules[idx] = rule
+    userRules.format(idx)
+    userRules.save()
 })
-
-exports.dispatchNewTunnel = function(info, worker) {
-    if(!menuWnd) {
-        console.log("menuwnd not ready")
-        return
-    }
-
-    menuWnd.webContents.send('tunnel-new', info)
-
-    worker.on('exit', () => {
-        try{
-            menuWnd.webContents.send('tunnel-closed', info.reqid)
-        }catch(e){}
-    })
-
-}
+ipcMain.on('user-rule-delete', (window, idx)=>{
+    userRules.remove(idx)
+    userRules.save()
+})
+ipcMain.on('user-rule-new', (window, regexp)=>{
+    var [idx, rule] = userRules.add(regexp)
+    menuWnd.webContents.send('user-rule-new', idx, rule)
+    userRules.save()
+})

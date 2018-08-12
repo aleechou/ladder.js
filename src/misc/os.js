@@ -58,7 +58,7 @@ exports.exec = function(cmd) {
         child_process.exec(
             cmd, (err, stdout, stderr)=>{
                 if(err) {
-                    console.error(">>", pid,stderr.toString())
+                    console.error(">>", stderr.toString())
                     return resolve()
                 }
                 resolve(stdout)

@@ -4,7 +4,7 @@ const net = require('net')
 
 
 
-exports.connectViaProxy = function(info, sshConfig, callback, reqid) {
+exports.connectViaProxy = function(info, sshConfig, callback) {
 
     var proxy = `${sshConfig.username}@${sshConfig.host}:${sshConfig.port}`
 
@@ -15,7 +15,7 @@ exports.connectViaProxy = function(info, sshConfig, callback, reqid) {
             info.srcPort,
             // "0.0.0.0",
             // 0,
-            info.dstAddr,
+            info.dstHost,
             info.dstPort,
             function(err, downstream) {
                 if (err) {
@@ -24,7 +24,7 @@ exports.connectViaProxy = function(info, sshConfig, callback, reqid) {
                     return
                 }
                 downstream.cat = function(upstream) {
-                    upstream.on('close', () => console.log(reqid, 'upstream closed', proxy))
+                    upstream.on('close', () => console.log(info.reqid, 'upstream closed', proxy))
                     this.pipe(upstream).pipe(this)
                 }
                 downstream.oriEnd = downstream.end
@@ -35,11 +35,11 @@ exports.connectViaProxy = function(info, sshConfig, callback, reqid) {
                 downstream.proxy = proxy
 
                 downstream.on('close', function() {
-                    console.log(reqid, "forwarder closed", proxy)
+                    console.log(info.reqid, "forwarder closed", proxy)
                     conn.end()
                 });
 
-                callback(null, downstream)
+                callback(null, downstream, sshConfig)
             });
     })
     .on('error', function(err) {
@@ -47,7 +47,7 @@ exports.connectViaProxy = function(info, sshConfig, callback, reqid) {
         conn.end()
     })
     .on('close', () => {
-        console.log(reqid, "tunnel closed", proxy)
+        console.log(info.reqid, "tunnel closed", proxy)
     })
     .connect(sshConfig)
 }
@@ -67,5 +67,5 @@ exports.connectDirect = function(info, callback) {
         .on("error", (error) => {
             callback({ code: "dst-inaccessible", cause: error, proxy: false }, downstream)
         })
-        .connect(info.dstPort, info.dstAddr)
+        .connect(info.dstPort, info.dstHost)
 }
