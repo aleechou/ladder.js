@@ -56,10 +56,15 @@ ipcMain.on('proxy-setting', function(window, name, value){
         if(value) {
             os.exec("git config --global http.proxy 'socks5://127.0.0.1:1080'")
             os.exec("git config --global https.proxy 'socks5://127.0.0.1:1080'")
+            os.exec("git config --global socks.proxy 'socks5://127.0.0.1:1080'")
+            os.exec(`git config --global core.gitProxy "${__dirname+'/../../sh/gitproxysocks.sh'}"`)
+            // os.exec(`git config --global core.gitproxy "git-proxy"`)
         }
         else {
             os.exec("git config --global http.proxy ''")
             os.exec("git config --global https.proxy ''")
+            os.exec("git config --global socks.proxy ''")
+            os.exec("git config --global core.gitproxy ''")
         }
     }
 })
