@@ -35,6 +35,7 @@ var server = socksServer.createServer(async function(info, upstream) {
     info.reqid = assigned_req_id++;
     info.directly = true
     info.causeRules = info.causeGlobal = false
+    info.status = 'connecting'
 
     info.dstHost = info.dstAddr
     info.dstAddr = info.dstAddr + ":" + info.dstPort
@@ -99,10 +100,8 @@ var server = socksServer.createServer(async function(info, upstream) {
         info.srcApp = {}
     }
 
-    var t = Date.now()
-    trayMenu.dispatchNewTunnel(info, worker)
-    console.log("send() ms", Date.now()-t)
-
+    trayMenu.dispatchNewTunnel(worker)
+    
 })
 .on("error", (error) => {
     console.log("dynamic port error", error)

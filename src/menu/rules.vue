@@ -7,7 +7,9 @@
             <div class="row listitem-user-rule" v-for="rule,idx of rules">
                 <input class="checkbox" type=checkbox :checked="rule.enable? 'checked': ''" @click="enableChanged(idx)" >
                 <span v-show="editingIndex!=idx" style="flex:1" @click='startEditRule(idx)'>{{rule.txt}}</span>
-                <input v-show="editingIndex==idx" style="flex:1" v-model="rule.txt" @keyup.enter="saveRule(idx, $event)">
+                <input class="ipt-rule-edit" :idx=idx v-show="editingIndex==idx" style="flex:1" v-model="rule.txt"
+                        @keyup.enter="saveRule()"
+                        @blur="saveRule()">
 
                 <a v-show="editingIndex==idx" @click="deleteRule(idx)">删除</a>
             </div>
@@ -48,10 +50,15 @@ export default {
 
         startEditRule(idx) {
             this.editingIndex = idx
+            setTimeout(()=> $(".ipt-rule-edit[idx="+idx+"]")[0].focus(), 0)
         } ,
 
-        saveRule(idx, event) {
-            $ipc.send('user-rule-changed', idx, this.rules[idx])
+        cancelEditRule() {
+            this.editingIndex = -1
+        },
+
+        saveRule(idx) {
+            $ipc.send('user-rule-changed', this.editingIndex, this.rules[this.editingIndex])
             this.editingIndex = -1
         }
     }

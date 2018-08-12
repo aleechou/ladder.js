@@ -104,6 +104,11 @@ process.on('message', (argv, upstream) => {
                     }
                 }
 
+                process.send({
+                    message: 'tunnel-status',
+                    status: 'error'
+                })
+
                 return cancel()
             }
 
@@ -124,6 +129,10 @@ process.on('message', (argv, upstream) => {
 
                 console.log(downstream.proxy ? "." : "=", info.reqid, info.dstHost, downstream.proxy || "direct", time)
 
+                process.send({
+                    message: 'tunnel-status',
+                    status: 'established'
+                })
             }
             // 较慢的链接
             else {

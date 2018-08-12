@@ -27,22 +27,29 @@ app.on('ready', () => {
 
 
 // 建立新隧道
-exports.dispatchNewTunnel = function(info, worker) {
+exports.dispatchNewTunnel = function(worker) {
     if(!menuWnd) {
         console.log("menuwnd not ready")
         return
     }
 
-    menuWnd.webContents.send('tunnel-new', info)
+    menuWnd.webContents.send('tunnel-new', worker.info)
+
+    worker.on('message',function (params){
+        console.log(params)
+        if( params.message=='tunnel-status' ) {
+            worker.info.status = params.status
+            menuWnd.webContents.send('tunnel-status-changed', worker.info.reqid, worker.info.status)
+        }
+    })
 
     worker.on('exit', () => {
         try{
-            menuWnd.webContents.send('tunnel-closed', info.reqid)
+            menuWnd.webContents.send('tunnel-closed', worker.info.reqid)
         }catch(e){}
     })
 
 }
-
 
 
 ipcMain.on('exit', process.exit)

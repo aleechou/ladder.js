@@ -46,7 +46,7 @@ export default {
     }),
     mounted () {
         $(".app")[0].style.display = 'flex'
-        this.$refs.tunnels.$el.style.display = 'flex'
+        this.$refs.rules.$el.style.display = 'flex'
     },
     methods: {
         switchPage (pageName) {

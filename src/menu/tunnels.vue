@@ -3,11 +3,14 @@
 
         <div style="font-size:13; display: flex;">
             显示隧道：
-            <v-checkbox small v-model="showDirectly" label="直连"></v-checkbox>
-            <v-checkbox small v-model="showProxy" label="代理"></v-checkbox>
-
-            <v-btn v-if=develop small flat icon @click="add"><v-icon dark>add</v-icon></v-btn>
-            <v-btn v-if=develop small flat icon @click="plus"><v-icon>remove</v-icon></v-btn>
+            <label>
+                <input type="checkbox" v-model="showDirectly" >
+                直连
+            </label>
+            <label style="margin-left:10;px">
+                <input type="checkbox" v-model="showProxy" >
+                代理
+            </label>
         </div>
 
         <div class="tunnel-list" name="list" is="transition-group">
@@ -25,6 +28,9 @@
 
                             <span>{{tunnel.dstHost}}</span>
                             <span style="color:gray">:{{tunnel.dstPort}}</span>
+
+                            [{{tunnel.status}}]
+
                         </div>
                     </div>
 
@@ -54,10 +60,10 @@
                             </div>
 
                             <div>
-                                <a v-show="!userRuleHasExists(tunnel.dstAddr)" class="md-dense" title="将该域名作为规则，添加到用户规则表。后续对该域名的请求，都经过代理服务器建立隧道" href="javascript:void(0)" @click="addToUserRules(tunnel.dstAddr)">
+                                <a v-show="!userRuleHasExists(tunnel.dstAddr)" title="将该域名作为规则，添加到用户规则表。后续对该域名的请求，都经过代理服务器建立隧道" href="javascript:void(0)" @click="addToUserRules(tunnel.dstAddr)">
                                     加为规则表
                                 </a>
-                                <a class="md-dense md-accent" title="强行关闭这个正在工作的隧道" href="javascript:void(0)" @click="disconnect(tunnel)">
+                                <a style="margin-left:20;px" title="强行关闭这个正在工作的隧道" href="javascript:void(0)" @click="disconnect(tunnel)">
                                     断开
                                 </a>
                             </div>
@@ -80,6 +86,8 @@ function regexpFromAddr(addr) {
     return addrRuleCache[addr]
 }
 
+var mapReqid2Tunnel = {}
+
 export default {
     name: 'Tunnels' ,
     data(){
@@ -97,9 +105,14 @@ export default {
         ipcRenderer.on('tunnel-new', (from, info)=>{
             this.prependTunnel(info)
         })
+        ipcRenderer.on('tunnel-status-changed', (from, reqid, status)=>{
+            mapReqid2Tunnel[reqid].status = status
+        })
         ipcRenderer.on('tunnel-closed', (from, reqid)=>{
             this.tunnelRemains --
             
+            delete mapReqid2Tunnel[reqid]
+
             for(var i=0; i<this.activeTunnels.length; i++){
                 if( this.activeTunnels[i].reqid == reqid ) {
                     this.activeTunnels.splice(i, 1)
@@ -119,17 +132,10 @@ export default {
             this.tunnelRemains ++
             this.activeTunnels.unshift(info)
 
+            mapReqid2Tunnel[info.reqid] = info
+
             this.$nextTick(()=>{
                 $('.tunnel-detail:not(.hasinit)').each(function (){
-                    // tippy(this.querySelectorAll("[title]"), {
-                    //     delay: 100,
-                    //     arrow: true,
-                    //     arrowType: 'round',
-                    //     size: 'small',
-                    //     duration: 200,
-                    //     animation: 'scale'
-                    // })
-
                     $(this).addClass('hasinit')
                 })
             })
@@ -144,25 +150,6 @@ export default {
                     tunnel.detail = tunnel==currentTunnel
                 } 
             }
-        } ,
-
-        randomIndex: function () {
-            return Math.floor(Math.random() * this.activeTunnels.length)
-        } ,
-        add: function () {
-            this.prependTunnel({
-                directly: false, 
-                dstAddr:'www.baidu.com:443', 
-                dstHost:'www.baidu.com', 
-                srcApp:{pid:1234, name:'firefox'}, 
-                dstPort:443, detail:false,
-                reqid: this.tunnelId ++
-            })
-        } ,
-        plus: function () {
-            var i = this.randomIndex()
-            console.log(i)
-            this.activeTunnels.splice(i, 1)
         } ,
 
         userRuleHasExists(addr) {
