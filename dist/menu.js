@@ -482,8 +482,6 @@ function applyToTag (styleElement, obj) {
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__mainwnd_vue__ = __webpack_require__(4);
-Vue.use(VueMaterial.default);
-
 
 
 function InitApp() {

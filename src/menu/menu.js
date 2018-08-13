@@ -1,5 +1,3 @@
-Vue.use(VueMaterial.default)
-
 import MainWnd from './mainwnd.vue'
 
 function InitApp () {
