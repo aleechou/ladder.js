@@ -21,7 +21,7 @@
                     @click="expandeTunnelDetail(tunnel)"
                     ref="tunnelitems">
   
-                    <div class="md-dense md-primary tunnel-summary" style="cursor: pointer; width: 100%; display: flex">
+                    <div class="tunnel-summary" style="cursor: pointer; width: 100%; display: flex">
                         <div style="flex:1" v-bind:class="{'directly': !!tunnel.directly}">
 
                             <v-icon title="通过代理连接" v-if="!tunnel.directly" style="color: green;">swap_horiz</v-icon>
@@ -182,26 +182,15 @@ export default {
 </script>
 
 <style>
-.md-list-item-container{
-    font-size: 14 ;
-}
 
 .directly {
     color: gray;
-}
-
-.md-list-item-content {
-    min-height: 40px;
 }
 
 v-btn.small {
     min-width: 20px;
     height: 18px;
     font-size: 10px
-}
-
-.md-tooltip {
-    font-size: 10;
 }
 
 .tunnel-list{

@@ -1062,7 +1062,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "\n.md-list-item-container{\n    font-size: 14 ;\n}\n.directly {\n    color: gray;\n}\n.md-list-item-content {\n    min-height: 40px;\n}\nv-btn.small {\n    min-width: 20px;\n    height: 18px;\n    font-size: 10px\n}\n.md-tooltip {\n    font-size: 10;\n}\n.tunnel-list{\n    overflow-x: hidden;\n    /* overflow-y: scroll; */\n}\n.tunnel-detail {\n    padding-left: 15px;\n    padding-right: 15px;\n    font-size:12;\n}\n.app-path {\n    word-wrap: break-word;\n    color: gray;\n}\n.app-path {\n    color: black;\n}\n\n/* 隧道列表动画 */\n.list-enter-active, .list-leave-active {\n  transition: all 1s;\n}\n.list-enter, .list-leave-to\n/* .list-leave-active for below version 2.1.8 */ {\n  opacity: 0;\n  transform: translateX(30px);\n}\n\n/* 隧道详情动画 */\n/* .bounce-enter-active {\n  animation: bounce-in .5s;\n}\n.bounce-leave-active {\n  animation: bounce-in .5s reverse;\n}\n@keyframes bounce-in {\n  0% {\n    transform: scale(0);\n  }\n  50% {\n    transform: scale(1.5);\n  }\n  100% {\n    transform: scale(1);\n  }\n} */\n.fade-enter-active, .fade-leave-active {\n  transition: opacity .3s;\n}\n.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {\n  opacity: 0;\n}\n\n", ""]);
+exports.push([module.i, "\n.directly {\n    color: gray;\n}\nv-btn.small {\n    min-width: 20px;\n    height: 18px;\n    font-size: 10px\n}\n.tunnel-list{\n    overflow-x: hidden;\n    /* overflow-y: scroll; */\n}\n.tunnel-detail {\n    padding-left: 15px;\n    padding-right: 15px;\n    font-size:12;\n}\n.app-path {\n    word-wrap: break-word;\n    color: gray;\n}\n.app-path {\n    color: black;\n}\n\n/* 隧道列表动画 */\n.list-enter-active, .list-leave-active {\n  transition: all 1s;\n}\n.list-enter, .list-leave-to\n/* .list-leave-active for below version 2.1.8 */ {\n  opacity: 0;\n  transform: translateX(30px);\n}\n\n/* 隧道详情动画 */\n/* .bounce-enter-active {\n  animation: bounce-in .5s;\n}\n.bounce-leave-active {\n  animation: bounce-in .5s reverse;\n}\n@keyframes bounce-in {\n  0% {\n    transform: scale(0);\n  }\n  50% {\n    transform: scale(1.5);\n  }\n  100% {\n    transform: scale(1);\n  }\n} */\n.fade-enter-active, .fade-leave-active {\n  transition: opacity .3s;\n}\n.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {\n  opacity: 0;\n}\n\n", ""]);
 
 // exports
 
@@ -1377,7 +1377,7 @@ var render = function() {
                   _c(
                     "div",
                     {
-                      staticClass: "md-dense md-primary tunnel-summary",
+                      staticClass: "tunnel-summary",
                       staticStyle: {
                         cursor: "pointer",
                         width: "100%",
@@ -2115,19 +2115,9 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c(
-    "md-empty-state",
-    {
-      staticClass: "main",
-      attrs: { "md-icon": "wifi_off", "md-label": "退出？" }
-    },
-    [
-      _c(
-        "md-button",
-        { staticClass: "md-accent md-raised", on: { click: _vm.exit } },
-        [_vm._v("确定退出")]
-      )
-    ],
-    1
+    "div",
+    { staticClass: "main", attrs: { icon: "wifi_off", label: "退出？" } },
+    [_c("button", { on: { click: _vm.exit } }, [_vm._v("确定退出")])]
   )
 }
 var staticRenderFns = []
@@ -2168,7 +2158,6 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-bottom-nav",
-        { attrs: { "md-type": "shift" } },
         [
           _c(
             "v-btn",
@@ -2198,15 +2187,11 @@ var render = function() {
               }
             },
             [
-              _c(
-                "v-icon",
-                { staticClass: "md-bottom-bar-icon material-icons" },
-                [_vm._v("swap_horiz")]
-              ),
-              _vm._v(" "),
-              _c("span", { staticClass: "md-bottom-bar-label" }, [
-                _vm._v("隧道")
+              _c("v-icon", { staticClass: "material-icons" }, [
+                _vm._v("swap_horiz")
               ]),
+              _vm._v(" "),
+              _c("span", [_vm._v("隧道")]),
               _vm._v(" "),
               _vm.activeTunnels
                 ? _c("i", { staticClass: "badge" }, [

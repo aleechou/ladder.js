@@ -6,14 +6,14 @@
         <rules ref='rules'></rules>
         <exit ref='exit'></exit>
         
-        <v-bottom-nav md-type="shift">
+        <v-bottom-nav>
             <v-btn @click="switchPage('settings')">
                 <span>设置</span>
                 <v-icon>build</v-icon>
             </v-btn>
             <v-btn id="item-posts" @click="switchPage('tunnels')">
-                <v-icon class="md-bottom-bar-icon material-icons">swap_horiz</v-icon>
-                <span class="md-bottom-bar-label">隧道</span>
+                <v-icon class="material-icons">swap_horiz</v-icon>
+                <span >隧道</span>
                 <i class="badge" v-if="activeTunnels">{{ activeTunnels }}</i>
             </v-btn>
             <v-btn @click="switchPage('servers')">

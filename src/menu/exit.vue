@@ -1,11 +1,11 @@
 <template>
 
-    <md-empty-state
+    <div
         class="main"
-        md-icon="wifi_off"
-        md-label="退出？">
-        <md-button class="md-accent md-raised" @click="exit">确定退出</md-button>
-    </md-empty-state>
+        icon="wifi_off"
+        label="退出？">
+        <button @click="exit">确定退出</button>
+    </div>
 
 </template>
 
