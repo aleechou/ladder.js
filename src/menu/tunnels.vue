@@ -1,5 +1,5 @@
 <template>
-    <md-content class="main" style="flex-direction: column; padding-left: 10px; padding-right: 10px;">
+    <div class="main" style="flex-direction: column; padding-left: 10px; padding-right: 10px;">
 
         <div style="font-size:13; display: flex;">
             显示隧道：
@@ -72,7 +72,7 @@
             </div>
         </div>
         
-    </md-content>
+    </div>
 </template>
 
 
@@ -163,7 +163,6 @@ export default {
         } ,
         addToUserRules(addr) {
             var regexp = regexpFromAddr(addr)
-            console.log(regexp)
             $ipc.send('user-rule-new', regexp)
         }
 
