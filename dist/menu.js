@@ -607,7 +607,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "\n.v-bottom-nav{\n    -webkit-transform: translate(0, 0px);\n    transform: translate(0, 0px);\n}\n", ""]);
+exports.push([module.i, "\n.v-bottom-nav{\n    -webkit-transform: translate(0, 0px);\n    transform: translate(0, 0px);\n}\n.app {\n    display: flex;\n}\n", ""]);
 
 // exports
 
@@ -702,8 +702,7 @@ module.exports = function listToStyles (parentId, list) {
         activeTunnels: 0
     }),
     mounted() {
-        $(".app")[0].style.display = 'flex';
-        this.$refs.rules.$el.style.display = 'flex';
+        $("[lanuch]")[0].style.display = 'flex';
     },
     methods: {
         switchPage(pageName) {
@@ -1062,7 +1061,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "\n.directly {\n    color: gray;\n}\nv-btn.small {\n    min-width: 20px;\n    height: 18px;\n    font-size: 10px\n}\n.tunnel-list{\n    overflow-x: hidden;\n    /* overflow-y: scroll; */\n}\n.tunnel-detail {\n    padding-left: 15px;\n    padding-right: 15px;\n    font-size:12;\n}\n.app-path {\n    word-wrap: break-word;\n    color: gray;\n}\n.app-path {\n    color: black;\n}\n\n/* 隧道列表动画 */\n.list-enter-active, .list-leave-active {\n  transition: all 1s;\n}\n.list-enter, .list-leave-to\n/* .list-leave-active for below version 2.1.8 */ {\n  opacity: 0;\n  transform: translateX(30px);\n}\n\n/* 隧道详情动画 */\n/* .bounce-enter-active {\n  animation: bounce-in .5s;\n}\n.bounce-leave-active {\n  animation: bounce-in .5s reverse;\n}\n@keyframes bounce-in {\n  0% {\n    transform: scale(0);\n  }\n  50% {\n    transform: scale(1.5);\n  }\n  100% {\n    transform: scale(1);\n  }\n} */\n.fade-enter-active, .fade-leave-active {\n  transition: opacity .3s;\n}\n.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {\n  opacity: 0;\n}\n\n", ""]);
+exports.push([module.i, "\n.directly {\n    color: gray;\n}\nv-btn.small {\n    min-width: 20px;\n    height: 18px;\n    font-size: 10px\n}\n.tunnel-list{\n    overflow-x: hidden;\n    overflow-y: scroll;\n}\n.tunnel-detail {\n    padding-left: 15px;\n    padding-right: 15px;\n    font-size:12;\n}\n.app-path {\n    word-wrap: break-word;\n    color: gray;\n}\n.app-path {\n    color: black;\n}\n\n/* 隧道列表动画 */\n.list-enter-active, .list-leave-active {\n  transition: all 1s;\n}\n.list-enter, .list-leave-to\n/* .list-leave-active for below version 2.1.8 */ {\n  opacity: 0;\n  transform: translateX(30px);\n}\n\n/* 隧道详情动画 */\n/* .bounce-enter-active {\n  animation: bounce-in .5s;\n}\n.bounce-leave-active {\n  animation: bounce-in .5s reverse;\n}\n@keyframes bounce-in {\n  0% {\n    transform: scale(0);\n  }\n  50% {\n    transform: scale(1.5);\n  }\n  100% {\n    transform: scale(1);\n  }\n} */\n.fade-enter-active, .fade-leave-active {\n  transition: opacity .3s;\n}\n.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {\n  opacity: 0;\n}\n\n", ""]);
 
 // exports
 
@@ -1270,7 +1269,7 @@ var render = function() {
       }
     },
     [
-      _c("div", { staticStyle: { "font-size": "13", display: "flex" } }, [
+      _c("div", { staticStyle: { height: "20px", display: "flex" } }, [
         _vm._v("\n        显示隧道：\n        "),
         _c("label", [
           _c("input", {
@@ -1559,6 +1558,10 @@ if (false) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_13_5_0_vue_loader_lib_selector_type_script_index_0_bustCache_servers_vue__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_13_5_0_vue_loader_lib_template_compiler_index_id_data_v_5151058e_hasScoped_false_buble_transforms_node_modules_13_5_0_vue_loader_lib_selector_type_template_index_0_bustCache_servers_vue__ = __webpack_require__(21);
 var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(31)
+}
 var normalizeComponent = __webpack_require__(0)
 /* script */
 
@@ -1567,7 +1570,7 @@ var normalizeComponent = __webpack_require__(0)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
-var __vue_styles__ = null
+var __vue_styles__ = injectStyle
 /* scopeId */
 var __vue_scopeId__ = null
 /* moduleIdentifier (server only) */
@@ -1650,12 +1653,85 @@ if (false) {(function () {
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["a"] = ({
     data() {
         return {
             servers: $Settings.servers
         };
+    },
+
+    methods: {
+        removeServer(idx) {
+            this.servers.splice(idx, 1);
+            $ipc.send('server-remove', idx);
+        },
+        addServer() {
+            var newServer = {
+                "enable": false,
+                "host": "",
+                "port": 22,
+                "username": "root",
+                "auth": "password",
+                "password": ''
+            };
+            this.servers.push(newServer);
+            $ipc.send('server-new', newServer);
+        },
+        serverChanged(idx) {
+            $ipc.send('server-save', idx, this.servers[idx]);
+        }
     }
 });
 
@@ -1675,45 +1751,306 @@ var render = function() {
       _c(
         "div",
         { staticStyle: { flex: "1" } },
-        _vm._l(_vm.servers, function(svr) {
-          return _c(
-            "v-card",
-            { staticClass: "white--text", attrs: { color: "blue-grey" } },
-            [
-              _c("v-card-title", { attrs: { "primary-title": "" } }, [
-                _c(
-                  "div",
-                  [
-                    _c("v-text-field", {
-                      attrs: { placeholder: "用户名", label: "用户名" },
-                      model: {
-                        value: svr.username,
-                        callback: function($$v) {
-                          _vm.$set(svr, "username", $$v)
-                        },
-                        expression: "svr.username"
+        _vm._l(_vm.servers, function(svr, idx) {
+          return _c("div", { staticClass: "server-setting" }, [
+            _c("div", { staticClass: "row" }, [
+              _c("span", { staticClass: "expand" }, [
+                _c("label", [
+                  _c("input", {
+                    directives: [
+                      {
+                        name: "model",
+                        rawName: "v-model",
+                        value: svr.enable,
+                        expression: "svr.enable"
                       }
-                    })
-                  ],
-                  1
+                    ],
+                    attrs: { type: "checkbox" },
+                    domProps: {
+                      checked: Array.isArray(svr.enable)
+                        ? _vm._i(svr.enable, null) > -1
+                        : svr.enable
+                    },
+                    on: {
+                      change: [
+                        function($event) {
+                          var $$a = svr.enable,
+                            $$el = $event.target,
+                            $$c = $$el.checked ? true : false
+                          if (Array.isArray($$a)) {
+                            var $$v = null,
+                              $$i = _vm._i($$a, $$v)
+                            if ($$el.checked) {
+                              $$i < 0 &&
+                                _vm.$set(svr, "enable", $$a.concat([$$v]))
+                            } else {
+                              $$i > -1 &&
+                                _vm.$set(
+                                  svr,
+                                  "enable",
+                                  $$a.slice(0, $$i).concat($$a.slice($$i + 1))
+                                )
+                            }
+                          } else {
+                            _vm.$set(svr, "enable", $$c)
+                          }
+                        },
+                        function($event) {
+                          _vm.serverChanged(idx)
+                        }
+                      ]
+                    }
+                  }),
+                  _vm._v("\n                        启用\n                    ")
+                ])
+              ]),
+              _vm._v(" "),
+              _c("span", [
+                _c(
+                  "a",
+                  {
+                    attrs: { href: "javascript:void(0)" },
+                    on: {
+                      click: function($event) {
+                        _vm.removeServer(idx)
+                      }
+                    }
+                  },
+                  [_vm._v("删除")]
                 )
               ])
-            ],
-            1
-          )
+            ]),
+            _vm._v(" "),
+            _c("div", { staticClass: "row" }, [
+              _c("span", { staticClass: "item-label" }, [_vm._v("服务器：")]),
+              _vm._v(" "),
+              _c("input", {
+                directives: [
+                  {
+                    name: "model",
+                    rawName: "v-model",
+                    value: svr.host,
+                    expression: "svr.host"
+                  }
+                ],
+                staticClass: "expand",
+                attrs: { placeholder: "服务器域名或IP" },
+                domProps: { value: svr.host },
+                on: {
+                  change: function($event) {
+                    _vm.serverChanged(idx)
+                  },
+                  input: function($event) {
+                    if ($event.target.composing) {
+                      return
+                    }
+                    _vm.$set(svr, "host", $event.target.value)
+                  }
+                }
+              }),
+              _vm._v(" "),
+              _c("input", {
+                directives: [
+                  {
+                    name: "model",
+                    rawName: "v-model",
+                    value: svr.port,
+                    expression: "svr.port"
+                  }
+                ],
+                staticStyle: { width: "50px" },
+                attrs: { placeholder: "SSH服务端口号" },
+                domProps: { value: svr.port },
+                on: {
+                  change: function($event) {
+                    _vm.serverChanged(idx)
+                  },
+                  input: function($event) {
+                    if ($event.target.composing) {
+                      return
+                    }
+                    _vm.$set(svr, "port", $event.target.value)
+                  }
+                }
+              })
+            ]),
+            _vm._v(" "),
+            _c("div", { staticClass: "row" }, [
+              _c("span", { staticClass: "item-label" }, [_vm._v("用户名：")]),
+              _vm._v(" "),
+              _c("input", {
+                directives: [
+                  {
+                    name: "model",
+                    rawName: "v-model",
+                    value: svr.username,
+                    expression: "svr.username"
+                  }
+                ],
+                staticClass: "expand",
+                attrs: { placeholder: "用户名" },
+                domProps: { value: svr.username },
+                on: {
+                  change: function($event) {
+                    _vm.serverChanged(idx)
+                  },
+                  input: function($event) {
+                    if ($event.target.composing) {
+                      return
+                    }
+                    _vm.$set(svr, "username", $event.target.value)
+                  }
+                }
+              })
+            ]),
+            _vm._v(" "),
+            _c("div", { staticClass: "row" }, [
+              _c("span", { staticClass: "item-label" }, [_vm._v("认证：")]),
+              _vm._v(" "),
+              _c(
+                "select",
+                {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: svr.auth,
+                      expression: "svr.auth"
+                    }
+                  ],
+                  on: {
+                    change: [
+                      function($event) {
+                        var $$selectedVal = Array.prototype.filter
+                          .call($event.target.options, function(o) {
+                            return o.selected
+                          })
+                          .map(function(o) {
+                            var val = "_value" in o ? o._value : o.value
+                            return val
+                          })
+                        _vm.$set(
+                          svr,
+                          "auth",
+                          $event.target.multiple
+                            ? $$selectedVal
+                            : $$selectedVal[0]
+                        )
+                      },
+                      function($event) {
+                        _vm.serverChanged(idx)
+                      }
+                    ]
+                  }
+                },
+                [
+                  _c("option", { attrs: { value: "password" } }, [
+                    _vm._v("使用密码")
+                  ]),
+                  _vm._v(" "),
+                  _c("option", { attrs: { value: "key" } }, [
+                    _vm._v("使用秘钥")
+                  ])
+                ]
+              )
+            ]),
+            _vm._v(" "),
+            _c(
+              "div",
+              {
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value: svr.auth == "password",
+                    expression: "svr.auth=='password'"
+                  }
+                ],
+                staticClass: "row"
+              },
+              [
+                _c("span", { staticClass: "item-label" }, [_vm._v("密码：")]),
+                _vm._v(" "),
+                _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: svr.password,
+                      expression: "svr.password"
+                    }
+                  ],
+                  staticClass: "expand",
+                  attrs: { placeholder: "密码（明文）", label: "密码" },
+                  domProps: { value: svr.password },
+                  on: {
+                    change: function($event) {
+                      _vm.serverChanged(idx)
+                    },
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.$set(svr, "password", $event.target.value)
+                    }
+                  }
+                })
+              ]
+            ),
+            _vm._v(" "),
+            _c(
+              "div",
+              {
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value: svr.auth == "key",
+                    expression: "svr.auth=='key'"
+                  }
+                ],
+                staticClass: "row"
+              },
+              [
+                _c("span", { staticClass: "item-label" }, [_vm._v("私钥：")]),
+                _vm._v(" "),
+                _c("textarea", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: svr.privateKey,
+                      expression: "svr.privateKey"
+                    }
+                  ],
+                  staticClass: "expand",
+                  staticStyle: { height: "70px" },
+                  attrs: {
+                    placeholder: "Base64格式的id_rsa私钥",
+                    label: "密码"
+                  },
+                  domProps: { value: svr.privateKey },
+                  on: {
+                    change: function($event) {
+                      _vm.serverChanged(idx)
+                    },
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.$set(svr, "privateKey", $event.target.value)
+                    }
+                  }
+                })
+              ]
+            )
+          ])
         })
       ),
       _vm._v(" "),
       _c(
         "v-btn",
-        {
-          attrs: { color: "info" },
-          nativeOn: {
-            click: function($event) {
-              _vm.loader = "loading4"
-            }
-          }
-        },
+        { attrs: { color: "info" }, on: { click: _vm.addServer } },
         [
           _c("v-icon", { attrs: { light: "" } }, [_vm._v("add")]),
           _vm._v("\n        添加服务器\n    ")
@@ -2150,7 +2487,7 @@ var render = function() {
         attrs: { cbTunnelCountChanged: _vm.cbTunnelCountChanged }
       }),
       _vm._v(" "),
-      _c("servers", { ref: "servers" }),
+      _c("servers", { ref: "servers", attrs: { lanuch: "" } }),
       _vm._v(" "),
       _c("rules", { ref: "rules" }),
       _vm._v(" "),
@@ -2269,6 +2606,46 @@ if (false) {
     require("vue-loader/node_modules/vue-hot-reload-api")      .rerender("data-v-7824bc86", esExports)
   }
 }
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(32);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("4a249c63", content, false);
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../node_modules/.0.28.11@css-loader/index.js!../../node_modules/.13.5.0@vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-5151058e\",\"scoped\":false,\"hasInlineConfig\":false}!../../node_modules/.13.5.0@vue-loader/lib/selector.js?type=styles&index=0&bustCache!./servers.vue", function() {
+     var newContent = require("!!../../node_modules/.0.28.11@css-loader/index.js!../../node_modules/.13.5.0@vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-5151058e\",\"scoped\":false,\"hasInlineConfig\":false}!../../node_modules/.13.5.0@vue-loader/lib/selector.js?type=styles&index=0&bustCache!./servers.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n.item-label {\n    width: 65px;\n}\n.server-setting {\n    margin-top: 20px;\n    margin-left: 15px;\n    margin-right: 15px;\n}\n", ""]);
+
+// exports
+
 
 /***/ })
 /******/ ]);

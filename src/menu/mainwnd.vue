@@ -2,7 +2,7 @@
     <div>
         <settings ref='settings'></settings>
         <tunnels ref='tunnels' :cbTunnelCountChanged="cbTunnelCountChanged"></tunnels>
-        <servers ref='servers'></servers>
+        <servers lanuch ref='servers'></servers>
         <rules ref='rules'></rules>
         <exit ref='exit'></exit>
         
@@ -45,8 +45,7 @@ export default {
         activeTunnels:0 ,
     }),
     mounted () {
-        $(".app")[0].style.display = 'flex'
-        this.$refs.rules.$el.style.display = 'flex'
+        $("[lanuch]")[0].style.display = 'flex'
     },
     methods: {
         switchPage (pageName) {
@@ -72,5 +71,8 @@ export default {
 .v-bottom-nav{
     -webkit-transform: translate(0, 0px);
     transform: translate(0, 0px);
+}
+.app {
+    display: flex;
 }
 </style>

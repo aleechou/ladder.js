@@ -36,7 +36,6 @@ exports.dispatchNewTunnel = function(worker) {
     menuWnd.webContents.send('tunnel-new', worker.info)
 
     worker.on('message',function (params){
-        console.log(params)
         if( params.message=='tunnel-status' ) {
             worker.info.status = params.status
             menuWnd.webContents.send('tunnel-status-changed', worker.info.reqid, worker.info.status)
@@ -115,7 +114,7 @@ ipcMain.on('server-new', function(window, config){
 })
 // 删除代理服务器
 ipcMain.on('server-remove', function(window, index){
-    $Settings.servers.slice(index, 1)
+    $Settings.servers.splice(index, 1)
     $Settings.save()
 })
 // 保存代理服务器
@@ -125,7 +124,6 @@ ipcMain.on('server-save', function(window, index, config){
 })
 // 用户规则修改
 ipcMain.on('user-rule-changed', (window, idx, rule)=>{
-    console.log(rule)
     userRules.rules[idx] = rule
     userRules.format(idx)
     userRules.save()

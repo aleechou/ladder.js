@@ -131,7 +131,8 @@ process.on('message', (argv, upstream) => {
 
                 process.send({
                     message: 'tunnel-status',
-                    status: 'established'
+                    status: 'established',
+                    retriedViaProxy: retriedViaProxy
                 })
             }
             // 较慢的链接

@@ -1,7 +1,7 @@
 <template>
     <div class="main" style="flex-direction: column; padding-left: 10px; padding-right: 10px;">
 
-        <div style="font-size:13; display: flex;">
+        <div style="height:20px; display: flex;">
             显示隧道：
             <label>
                 <input type="checkbox" v-model="showDirectly" >
@@ -195,7 +195,7 @@ v-btn.small {
 
 .tunnel-list{
     overflow-x: hidden;
-    /* overflow-y: scroll; */
+    overflow-y: scroll;
 }
 
 .tunnel-detail {

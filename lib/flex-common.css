@@ -1,0 +1,14 @@
+.row {
+    display: flex;
+    flex-direction: row;
+}
+.column {
+    display: flex;
+    flex-direction: column;
+}
+.expand {
+    flex: 1;
+}
+.shrink {
+    flex: 0;
+}
