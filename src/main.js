@@ -2,15 +2,9 @@ const cluster = require('cluster')
 const socks = require('socksv5')
 const socksServer = require('./proxy/socks5-server')
 const router = require('./proxy/router.js')
-const trayMenu = require(__dirname+'/menu')
 const fs = require('fs')
 const os = require(__dirname+'/misc/os')
 const userRules = require(__dirname+"/user-rules.js")
-
-
-os.ps(90418, (err, app, argv)=>{
-    console.log(app, argv)
-})
 
 try{ fs.mkdirSync(__dirname+"/../data") }catch(e){}
 try{ fs.mkdirSync(__dirname+"/../data/keys") }catch(e){}
@@ -18,6 +12,11 @@ try{ fs.mkdirSync(__dirname+"/../data/keys") }catch(e){}
 // 全局对象
 global.$Settings = require(__dirname+'/settings')
 global.$WorkersPool = {}
+
+var bShowUI = process.argv.includes("--ui")
+if(bShowUI) {
+    var trayMenu = require(__dirname+'/menu')
+}
 
 // 自动设置操作系统的代理设置
 if( $Settings.proxy.hookSystem ) {
@@ -100,7 +99,7 @@ var server = socksServer.createServer(async function(info, upstream) {
         info.srcApp = {}
     }
 
-    trayMenu.dispatchNewTunnel(worker)
+    trayMenu && trayMenu.dispatchNewTunnel(worker)
     
 })
 .on("error", (error) => {
