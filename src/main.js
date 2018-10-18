@@ -13,7 +13,7 @@ try{ fs.mkdirSync(__dirname+"/../data/keys") }catch(e){}
 global.$Settings = require(__dirname+'/settings')
 global.$WorkersPool = {}
 
-var bShowUI = process.argv.includes("--ui")
+var bShowUI = process.argv.includes("--disabled-ui")
 if(bShowUI) {
     var trayMenu = require(__dirname+'/menu')
 }

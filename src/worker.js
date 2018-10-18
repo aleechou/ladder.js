@@ -1,14 +1,14 @@
 const tunnel = require('./proxy/tunnel')
 
 var REP = require('socksv5/lib/constants').REP;
-var BUF_REP_INTR_SUCCESS = new Buffer([0x05,
-        REP.SUCCESS,
-        0x00,
-        0x01,
-        0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00
-    ]),
-    BUF_REP_DISALLOW = new Buffer([0x05, REP.DISALLOW])
+var BUF_REP_INTR_SUCCESS = Buffer.alloc(10, 0)
+BUF_REP_INTR_SUCCESS[0] = 0x05
+BUF_REP_INTR_SUCCESS[1] = REP.SUCCESS
+BUF_REP_INTR_SUCCESS[3] = 0x01
+
+var BUF_REP_DISALLOW = Buffer.alloc(2)
+BUF_REP_DISALLOW[0] = 0x05
+BUF_REP_DISALLOW[1] = REP.DISALLOW
 
 process.on('message', (argv, upstream) => {
     var info = argv[0]
